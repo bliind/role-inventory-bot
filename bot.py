@@ -138,9 +138,4 @@ async def add_role(interaction: discord.Interaction):
         embed=discord.Embed(color=discord.Color.green(), description=description)
     )
 
-@bot.event
-async def on_message(message):
-    for attachment in message.attachments:
-        print(attachment.is_spoiler())
-
 bot.run(config.token)
