@@ -28,6 +28,11 @@ class MyClient(commands.Bot):
 
 bot = MyClient()
 
+@bot.tree.command(name='reload_exclusions', description='Reload the Role Inventory excluded roles', guild=discord.Object(id=config.server))
+async def reload_config_command(interaction):
+    load_config()
+    await interaction.response.send_message('Reloaded', ephemeral=True)
+
 @bot.tree.command(name='remove_role', description='Remove a role and store it', guild=discord.Object(id=config.server))
 async def remove_role(interaction: discord.Interaction):
     user_roles = []
@@ -99,7 +104,7 @@ async def add_role(interaction: discord.Interaction):
     eligible_roles = [s for s in saved_roles if int(s) not in current_roles]
     user_roles = []
     for role in server.roles:
-        if str(role.id) in eligible_roles:
+        if str(role.id) in eligible_roles and role.id not in config.exclude:
             user_roles.append(dotdict({"id": role.id, "name": role.name}))
 
     if not user_roles:
