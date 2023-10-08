@@ -1,2 +1,9 @@
 # role-inventory-bot
-Role Inventory Discord Bot
+
+```sql
+CREATE TABLE inventory(
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id INT,
+    roles TEXT
+);
+```
