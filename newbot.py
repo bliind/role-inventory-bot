@@ -21,8 +21,6 @@ env = os.getenv('BOT_ENV')
 load_config()
 
 intents = discord.Intents.default()
-intents.message_content = True
-intents.members = True
 bot = commands.Bot(command_prefix='>', intents=intents)
 
 cogs = ['RoleInventory', 'Gamba']
