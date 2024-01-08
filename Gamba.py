@@ -140,7 +140,11 @@ class Gamba(commands.Cog):
             if award == 'GOLDEN JEFF':
                 # rarest spin gets a different message
                 embed.description += f' I didn\'t even know that was possible!!'
-            await interaction.response.send_message(embed=embed)
+            if award == 'Rock':
+                embed.description = f'{loot_table[award]["spin"]}\n\nOh cool, you won a rock.'
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+            else:
+                await interaction.response.send_message(embed=embed)
 
             # oh yeah give the user the role
             await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
