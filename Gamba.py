@@ -16,16 +16,18 @@ with open(file, encoding='utf8') as stream:
 loot_table = dotdict(loot_table)
 
 # cooldown in seconds
-gamba_cooldown = 600
+gamba_cooldown = 300
 
 # make a losing roll
 def lose_roll():
     emotes = ['🍒', '🌈', '🍎', '🍋', '💎', '💰', '🍀']
-    result_str = '🍒🍒🍒'
-    while result_str[0] == result_str[1] and result_str[1] == result_str[2]:
+    result_str = '🍒 | 🍒 | 🍒'
+    while result_str[0] == result_str[4] and result_str[4] == result_str[8]:
         result_str = ' | '.join(random.choice(emotes) for i in range(3))
 
     return result_str
+
+cooldowns = {}
 
 # quick and dirty epoch timestamp
 def timestamp():
@@ -41,14 +43,29 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
-        # check last slot for user from database
-        last_pull = db.get_last_slot_pull(interaction.user.id)
-        # fake it if there's no entry
-        if not last_pull: last_pull = {"datestamp": timestamp()-700}
+        if interaction.user.id not in cooldowns:
+            cooldowns[interaction.user.id] = timestamp()-700
+        # # check last slot for user from database
+        # last_pull = db.get_last_slot_pull(interaction.user.id)
+        # # fake it if there's no entry
+        # if not last_pull: last_pull = {"datestamp": timestamp()-700}
 
         # cooldown, now - then < cooldown
-        if (timestamp() - int(last_pull['datestamp']) < gamba_cooldown):
-            await interaction.response.send_message('Still cooling down from your last spin!', ephemeral=True)
+        # if (timestamp() - int(last_pull['datestamp']) < gamba_cooldown):
+        seconds_left = timestamp() - cooldowns[interaction.user.id]
+        if (seconds_left < gamba_cooldown):
+            s_l = (cooldowns[interaction.user.id] + gamba_cooldown) - timestamp()
+            minutes = int(s_l / 60)
+            seconds = int(s_l - (minutes*60))
+            time_string = ''
+            if minutes:
+                time_string += f'{minutes} minute{"s" if minutes > 1 else ""}'
+            if minutes and seconds:
+                time_string += ', '
+            if seconds:
+                time_string += f'{seconds} second{"s" if seconds > 1 else ""}'
+
+            await interaction.response.send_message(f'Still cooling down from your last spin!\n\nTry again in {time_string}', ephemeral=True)
             return
 
         # roll a random number,
@@ -60,7 +77,8 @@ class Gamba(commands.Cog):
                 award = loot
 
         # save the timestamp for the cooldown
-        db.save_slot_pull(interaction.user.id, timestamp())
+        # db.save_slot_pull(interaction.user.id, timestamp())
+        cooldowns[interaction.user.id] = timestamp()
 
         # Create a pretty embed
         embed = discord.Embed(
