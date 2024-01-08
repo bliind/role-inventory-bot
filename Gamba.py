@@ -45,16 +45,19 @@ class Gamba(commands.Cog):
     async def mine(self, interaction):
         if interaction.user.id not in cooldowns:
             cooldowns[interaction.user.id] = timestamp()-700
-        # # check last slot for user from database
-        # last_pull = db.get_last_slot_pull(interaction.user.id)
-        # # fake it if there's no entry
-        # if not last_pull: last_pull = {"datestamp": timestamp()-700}
 
+        cooldown = 300
+        for role in interaction.user.roles:
+            if role.name == '[Booster]':
+                cooldown = 180
+                break
+
+        # check last spin for the user
         # cooldown, now - then < cooldown
-        # if (timestamp() - int(last_pull['datestamp']) < gamba_cooldown):
         seconds_left = timestamp() - cooldowns[interaction.user.id]
-        if (seconds_left < gamba_cooldown):
-            s_l = (cooldowns[interaction.user.id] + gamba_cooldown) - timestamp()
+        if (seconds_left < cooldown):
+            # count down how much time left till it's up
+            s_l = (cooldowns[interaction.user.id] + cooldown) - timestamp()
             minutes = int(s_l / 60)
             seconds = int(s_l - (minutes*60))
             time_string = ''
@@ -71,13 +74,14 @@ class Gamba(commands.Cog):
         # roll a random number,
         # loop through the loot table and find the rarest reward hit
         award = None
-        roll = random.randrange(1,1000001)
-        for loot in loot_table.keys():
-            if roll <= loot_table[loot]['chance']:
-                award = loot
+        smol_first = sorted(loot_table.items(), key=lambda x:x[1]['chance'], reverse=True)
+        for loot in smol_first:
+            roll = random.randrange(1, loot[1]['chance']+1)
+            if roll == 1:
+                award = loot[0]
+                break
 
         # save the timestamp for the cooldown
-        # db.save_slot_pull(interaction.user.id, timestamp())
         cooldowns[interaction.user.id] = timestamp()
 
         # Create a pretty embed
@@ -96,7 +100,7 @@ class Gamba(commands.Cog):
         else:
             # won, show publicly
             embed.description = f'{loot_table[award]["spin"]}\n\nYou won the {award} role!'
-            if roll == 1:
+            if award == 'GOLDEN JEFF':
                 # rarest spin gets a different message
                 embed.description += f' I didn\'t even know that was possible!!'
             await interaction.response.send_message(embed=embed)
