@@ -71,7 +71,7 @@ class Gamba(commands.Cog):
                 hot_hour['active'] = False
         else:
             # if we're not in a checked hour and close to the start of the hour
-            if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 5:
+            if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
                 # and we hit a 10% chance
                 if random.randrange(1,6) == 1:
                     # activate hot hour and send a message to the channel
