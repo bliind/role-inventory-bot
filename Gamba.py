@@ -20,14 +20,26 @@ gamba_cooldown = 300
 
 # make a losing roll
 def lose_roll():
-    emotes = ['🍒', '🌈', '🍎', '🍋', '🔔', '💎', '💰', '🍀']
+    emotes = ['🍒', '🌈', '🍎', '🍋', '🍍', '🔔', '💎', '💰', '🍀']
     result_str = '🍒 | 🍒 | 🍒'
     while result_str[0] == result_str[4] and result_str[4] == result_str[8]:
         result_str = ' | '.join(random.choice(emotes) for i in range(3))
 
     return result_str
 
+fail_messages = [
+    "Better luck next time!",
+    "Have you tried spinning better?",
+    "Skill issue.",
+    "Is this your first time mining?"
+]
+
 cooldowns = {}
+
+hot_hour = {
+    "hour": 0,
+    "active": False
+}
 
 # quick and dirty epoch timestamp
 def timestamp():
@@ -51,6 +63,31 @@ class Gamba(commands.Cog):
             if role.name == '[Booster]':
                 cooldown = 180
                 break
+
+        now = datetime.datetime.now()
+        if hot_hour['active']:
+            if hot_hour['hour'] != now.hour:
+                # if hot hour is active but we're not in that hour anymore, turn it off
+                hot_hour['active'] = False
+        else:
+            # if we're not in a checked hour and close to the start of the hour
+            if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 5:
+                # and we hit a 10% chance
+                if random.randrange(1,6) == 1:
+                    # activate hot hour and send a message to the channel
+                    hot_hour['active'] = True
+                    await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
+
+            hot_hour['hour'] = now.hour
+
+
+        # if hot hour, 1 minute cooldown for everyone
+        if hot_hour['active']:
+            cooldown = 60
+
+        # debug
+        if interaction.guild.id == 479676054546546730:
+            cooldown = 0
 
         # check last spin for the user
         # cooldown, now - then < cooldown
@@ -95,7 +132,7 @@ class Gamba(commands.Cog):
 
         if not award:
             # no win, show only to user who spun
-            embed.description = f'{lose_roll()}\n\nBetter luck next time!'
+            embed.description = f'{lose_roll()}\n\n{random.choice(fail_messages)}'
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             # won, show publicly
