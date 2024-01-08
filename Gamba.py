@@ -83,8 +83,8 @@ class Gamba(commands.Cog):
                 embed.description += f' I didn\'t even know that was possible!!'
             await interaction.response.send_message(embed=embed)
 
-        # oh yeah give the user the role
-        await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
+            # oh yeah give the user the role
+            await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
 
     async def cog_unload(self):
         """this gets called if the cog gets unloaded, remove commands from tree"""
