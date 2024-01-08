@@ -1,0 +1,42 @@
+{
+    "Rock": {
+        "chance": 0,
+        "role": 0,
+        "spin": "🍎 | 🍎 | 🍎"
+    },
+    "Gold Rock": {
+        "chance": 0,
+        "role": 0,
+        "spin": "🍋 | 🍋 | 🍋"
+    },
+    "JEFF": {
+        "chance": 0,
+        "role": 0,
+        "spin": "🍒 | 🍒 | 🍒"
+    },
+    "Coal": {
+        "chance": 0,
+        "role": 0,
+        "spin": "💰 | 💰 | 💰"
+    },
+    "Diamond Rock": {
+        "chance": 0,
+        "role": 0,
+        "spin": "💎 | 💎 | 💎"
+    },
+    "Flawless Rock": {
+        "chance": 0,
+        "role": 0,
+        "spin": "🍀 | 🍀 | 🍀"
+    },
+    "Prismatic Rock": {
+        "chance": 0,
+        "role": 0,
+        "spin": "🌈 | 🌈 | 🌈"
+    },
+    "GOLDEN JEFF": {
+        "chance": 0,
+        "role": 0,
+        "spin": "✨ | ✨ | ✨"
+    }
+}

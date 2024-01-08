@@ -57,3 +57,30 @@ def get_roles(user_id):
     except Exception as e:
         conn.close()
         return []
+
+def save_slot_pull(user_id, datestamp):
+    try:
+        execute('INSERT INTO gamba (id, user_id, datestamp) VALUES (?, ?, ?)', (str(uuid.uuid4()), user_id, datestamp))
+        return True
+    except Exception as e:
+        print('Failed to add gamba!')
+        print(e)
+        print(user_id)
+        print(datestamp)
+        return False
+
+def get_last_slot_pull(user_id):
+    conn = open_db()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM gamba WHERE user_id = ?', (user_id,))
+    row = cur.fetchone()
+    conn.close()
+
+    try:
+        return {
+            "id":        row[0],
+            "user_id":   row[1],
+            "datestamp": row[2]
+        }
+    except:
+        return None

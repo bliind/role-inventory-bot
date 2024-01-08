@@ -3,3 +3,5 @@ __pycache__/*
 db.db
 config.json
 config.test.json
+loot_table.json
+loot_table.test.json
