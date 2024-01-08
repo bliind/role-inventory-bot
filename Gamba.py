@@ -37,10 +37,10 @@ class Gamba(commands.Cog):
         self.bot = bot
         self.config = config
         self.server = discord.Object(id=config.server)
-        self.bot.tree.add_command(self.gamba, guild=self.server)
+        self.bot.tree.add_command(self.mine, guild=self.server)
 
-    @app_commands.command(name='gamba', description='Open for a chance at a rare role!')
-    async def gamba(self, interaction):
+    @app_commands.command(name='mine', description='Open for a chance at a rare role!')
+    async def mine(self, interaction):
         # check last slot for user from database
         last_pull = db.get_last_slot_pull(interaction.user.id)
         # fake it if there's no entry
@@ -88,4 +88,4 @@ class Gamba(commands.Cog):
 
     async def cog_unload(self):
         """this gets called if the cog gets unloaded, remove commands from tree"""
-        self.bot.tree.remove_command('gamba', guild=self.server)
+        self.bot.tree.remove_command('mine', guild=self.server)
