@@ -31,7 +31,8 @@ fail_messages = [
     "Better luck next time!",
     "Have you tried spinning better?",
     "Skill issue.",
-    "Is this your first time mining?"
+    "Is this your first time mining?",
+    "LemonSlayR is a better miner than you"
 ]
 
 cooldowns = {}
@@ -64,6 +65,7 @@ class Gamba(commands.Cog):
                 cooldown = 180
                 break
 
+        hot_odds = 6
         now = datetime.datetime.now()
         if hot_hour['active']:
             if hot_hour['hour'] != now.hour:
@@ -76,7 +78,10 @@ class Gamba(commands.Cog):
                 if random.randrange(1,6) == 1:
                     # activate hot hour and send a message to the channel
                     hot_hour['active'] = True
+                    hot_odds = 6
                     await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
+                else:
+                    hot_odds -= 1
 
             hot_hour['hour'] = now.hour
 
