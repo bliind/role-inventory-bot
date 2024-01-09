@@ -96,10 +96,6 @@ class Gamba(commands.Cog):
         if hot_hour['active']:
             cooldown = 60
 
-        # debug
-        if interaction.guild.id == 479676054546546730:
-            cooldown = 0
-
         # check last spin for the user
         # cooldown, now - then < cooldown
         seconds_left = timestamp() - cooldowns[interaction.user.id]
