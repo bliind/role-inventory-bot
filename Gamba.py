@@ -32,14 +32,21 @@ fail_messages = [
     "Have you tried spinning better?",
     "Skill issue.",
     "Is this your first time mining?",
-    "LemonSlayR is a better miner than you"
+    "LemonSlayR is a better miner than you",
+    "Unions decrease odds of winning big",
+    "Imagine not winning",
+    "You obviously never played DRG",
+    "Rocks are for winners",
+    "Your pay is getting docked for how bad that one was.",
+    "L"
 ]
 
 cooldowns = {}
 
 hot_hour = {
     "hour": 0,
-    "active": False
+    "active": False,
+    "odds": 6
 }
 
 # quick and dirty epoch timestamp
@@ -65,7 +72,6 @@ class Gamba(commands.Cog):
                 cooldown = 180
                 break
 
-        hot_odds = 6
         now = datetime.datetime.now()
         if hot_hour['active']:
             if hot_hour['hour'] != now.hour:
@@ -74,14 +80,14 @@ class Gamba(commands.Cog):
         else:
             # if we're not in a checked hour and close to the start of the hour
             if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
-                # and we hit a 10% chance
-                if random.randrange(1,6) == 1:
+                # and we hit the current chance
+                if random.randrange(1,hot_hour['odds']) == 1:
                     # activate hot hour and send a message to the channel
                     hot_hour['active'] = True
-                    hot_odds = 6
+                    hot_hour['odds'] = 6
                     await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
                 else:
-                    hot_odds -= 1
+                    hot_hour['odds'] -= 1
 
             hot_hour['hour'] = now.hour
 
