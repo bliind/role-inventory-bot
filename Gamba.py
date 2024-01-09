@@ -17,6 +17,10 @@ loot_table = dotdict(loot_table)
 
 # cooldown in seconds
 gamba_cooldown = 300
+BROKEN_PICKAXE_COOLDOWN = 3600
+
+# pickaxe break chance (1/x)
+pickaxe_break_chance = 1000
 
 # make a losing roll
 def lose_roll():
@@ -67,15 +71,7 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
-        if interaction.user.id not in cooldowns:
-            cooldowns[interaction.user.id] = timestamp()-700
-
-        cooldown = 300
-        for role in interaction.user.roles:
-            if role.name == '[Booster]':
-                cooldown = 180
-                break
-
+        
         now = datetime.datetime.now()
         if hot_hour['active']:
             if hot_hour['hour'] != now.hour:
@@ -96,16 +92,27 @@ class Gamba(commands.Cog):
             hot_hour['hour'] = now.hour
 
 
-        # if hot hour, 1 minute cooldown for everyone
-        if hot_hour['active']:
+        if interaction.user.id not in cooldowns:
+            cooldowns[interaction.user.id]["last_roll"] = timestamp()-700
+
+
+        if hot_hour['active']: # if hot hour, 1 minute cooldown for everyone
             cooldown = 60
+        elif cooldowns[interaction.user.id]["pickaxe_state"] == True: # if the user's pickaxe is broken, 3600 second (1 hour) cooldown
+            cooldown = BROKEN_PICKAXE_COOLDOWN
+        else: # else, standard cooldown timer
+            cooldown = 300
+            for role in interaction.user.roles:
+                if role.name == '[Booster]':
+                    cooldown = 180
+                    break
 
         # check last spin for the user
         # cooldown, now - then < cooldown
-        seconds_left = timestamp() - cooldowns[interaction.user.id]
+        seconds_left = timestamp() - cooldowns[interaction.user.id]["last_roll"]
         if (seconds_left < cooldown):
             # count down how much time left till it's up
-            s_l = (cooldowns[interaction.user.id] + cooldown) - timestamp()
+            s_l = (cooldowns[interaction.user.id]["last_roll"] + cooldown) - timestamp()
             minutes = int(s_l / 60)
             seconds = int(s_l - (minutes*60))
             time_string = ''
@@ -129,8 +136,9 @@ class Gamba(commands.Cog):
                 award = loot[0]
                 break
 
-        # save the timestamp for the cooldown
-        cooldowns[interaction.user.id] = timestamp()
+        # save the timestamp for the cooldown and pickaxe state
+        is_pickaxe_broken = (random.randrange(1, pickaxe_break_chance) == 1)
+        cooldowns[interaction.user.id] = {"last_roll": timestamp(), "pickaxe_state": is_pickaxe_broken}
 
         # Create a pretty embed
         embed = discord.Embed(
@@ -144,6 +152,8 @@ class Gamba(commands.Cog):
         if not award:
             # no win, show only to user who spun
             embed.description = f'{lose_roll()}\n\n{random.choice(fail_messages)}'
+            if is_pickaxe_broken:
+                embed.description += (f'\nYour pickaxe broke 🤦 You have to wait %d seconds for a new one to be delivered.') % BROKEN_PICKAXE_COOLDOWN
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             # won, show publicly
