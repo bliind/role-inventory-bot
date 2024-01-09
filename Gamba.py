@@ -39,7 +39,6 @@ fail_messages = [
     "Have you tried spinning better?",
     "Skill issue.",
     "Is this your first time mining?",
-    "LemonSlayR is a better miner than you",
     "Unions decrease odds of winning big",
     "Imagine not winning",
     "You obviously never played DRG",
