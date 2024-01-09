@@ -29,6 +29,9 @@ def lose_roll():
 
 fail_messages = [
     "Better luck next time!",
+    "That's rough, buddy.",
+    "Not this time!",
+    "Well, you have to try again.",
     "Have you tried spinning better?",
     "Skill issue.",
     "Is this your first time mining?",
@@ -38,7 +41,8 @@ fail_messages = [
     "You obviously never played DRG",
     "Rocks are for winners",
     "Your pay is getting docked for how bad that one was.",
-    "L"
+    "L",
+    "Maybe you should have cooled down a bit longer"
 ]
 
 cooldowns = {}
