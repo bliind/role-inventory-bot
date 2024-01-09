@@ -37,6 +37,7 @@ fail_messages = [
 cooldowns = {}
 
 hot_hour = {
+    "odds": 6,
     "hour": 0,
     "active": False
 }
@@ -69,14 +70,17 @@ class Gamba(commands.Cog):
             if hot_hour['hour'] != now.hour:
                 # if hot hour is active but we're not in that hour anymore, turn it off
                 hot_hour['active'] = False
+                hot_hour['odds'] = 6;
         else:
             # if we're not in a checked hour and close to the start of the hour
             if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
                 # and we hit a 10% chance
-                if random.randrange(1,6) == 1:
+                if random.randrange(1, hot_hour['odds']) == 1:
                     # activate hot hour and send a message to the channel
                     hot_hour['active'] = True
                     await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
+                else:
+                    hot_hour['odds'] = hot_hour['odds'] - 1
 
             hot_hour['hour'] = now.hour
 
