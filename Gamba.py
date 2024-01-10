@@ -9,11 +9,21 @@ import db
 from dotdict import dotdict
 
 # load the loot table according to the environment
+async def load_loot_table():
+    global loot_table
+    file = 'loot_table.json' if env == 'prod' else 'loot_table.test.json'
+    with open(file, encoding='utf8') as stream:
+        loot_table = json.load(stream)
+    loot_table = dotdict(loot_table)
+
+async def load_fail_messages():
+    global fail_messages
+    with open('fail_messages.json', encoding='utf8') as stream:
+        fail_messages = json.load(stream)
+
 env = os.getenv('BOT_ENV')
-file = 'loot_table.json' if env == 'prod' else 'loot_table.test.json'
-with open(file, encoding='utf8') as stream:
-    loot_table = json.load(stream)
-loot_table = dotdict(loot_table)
+load_loot_table()
+load_fail_messages()
 
 # cooldown in seconds
 gamba_cooldown = 300
@@ -27,31 +37,9 @@ def lose_roll():
 
     return result_str
 
-fail_messages = [
-    "Better luck next time!",
-    "That's rough, buddy.",
-    "Not this time!",
-    "Well, you have to try again.",
-    "Have you tried spinning better?",
-    "Skill issue.",
-    "Is this your first time mining?",
-    "LemonSlayR is a better miner than you",
-    "Unions decrease odds of winning big",
-    "Imagine not winning",
-    "You obviously never played DRG",
-    "Rocks are for winners",
-    "Your pay is getting docked for how bad that one was.",
-    "L",
-    "Maybe you should have cooled down a bit longer"
-]
+
 
 cooldowns = {}
-
-hot_hour = {
-    "hour": 0,
-    "active": False,
-    "odds": 6
-}
 
 # quick and dirty epoch timestamp
 def timestamp():
@@ -64,6 +52,30 @@ class Gamba(commands.Cog):
         self.config = config
         self.server = discord.Object(id=config.server)
         self.bot.tree.add_command(self.mine, guild=self.server)
+        self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
+        self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
+        self.hot_hour = {
+            "hour": 0,
+            "active": False,
+            "odds": 6
+        }
+
+    async def get_hot_hour(self):
+        return self.hot_hour
+
+    async def change_hot_hour(self, hot_hour):
+        for k,v in hot_hour.items():
+            self.hot_hour[k] = v
+
+    @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
+    async def reload_loot_table(self, interaction):
+        await load_loot_table()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
+
+    @app_commands.command(name='reload_fail_messages', description='Re-read the fail message table')
+    async def reload_fail_messages(self, interaction):
+        await load_fail_messages()()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
@@ -76,28 +88,27 @@ class Gamba(commands.Cog):
                 cooldown = 180
                 break
 
+        hot_hour = await self.get_hot_hour()
         now = datetime.datetime.now()
         if hot_hour['active']:
             if hot_hour['hour'] != now.hour:
                 # if hot hour is active but we're not in that hour anymore, turn it off
-                hot_hour['active'] = False
+                await self.change_hot_hour({"active": False})
         else:
             # if we're not in a checked hour and close to the start of the hour
             if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
                 # and we hit the current chance
                 if random.randrange(1,hot_hour['odds']) == 1:
                     # activate hot hour and send a message to the channel
-                    hot_hour['active'] = True
-                    hot_hour['odds'] = 6
+                    await self.change_hot_hour({"active": True, "odds": 6})
                     await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
                 else:
-                    hot_hour['odds'] -= 1
+                    await self.change_hot_hour({"odds": self.hot_hour['odds'] - 1})
 
-            hot_hour['hour'] = now.hour
-
+            await self.change_hot_hour({"hour": now.hour})
 
         # if hot hour, 1 minute cooldown for everyone
-        if hot_hour['active']:
+        if self.hot_hour['active']:
             cooldown = 60
 
         # check last spin for the user
@@ -143,7 +154,10 @@ class Gamba(commands.Cog):
 
         if not award:
             # no win, show only to user who spun
-            embed.description = f'{lose_roll()}\n\n{random.choice(fail_messages)}'
+            fail_msgs = fail_messages[:]
+            if interaction.user.id != 821114303377309696:
+                fail_msgs.append("LemonSlayR is a better miner than you")
+            embed.description = f'{lose_roll()}\n\n{random.choice(fail_msgs)}'
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             # won, show publicly
@@ -163,3 +177,5 @@ class Gamba(commands.Cog):
     async def cog_unload(self):
         """this gets called if the cog gets unloaded, remove commands from tree"""
         self.bot.tree.remove_command('mine', guild=self.server)
+        self.bot.tree.remove_command('reload_loot_table', guild=self.server)
+        self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
