@@ -31,13 +31,11 @@ gamba_cooldown = 300
 # make a losing roll
 def lose_roll():
     emotes = ['🍒', '🌈', '🍎', '🍋', '🍍', '🔔', '💎', '💰', '🍀']
-    result_str = '🍒 | 🍒 | 🍒'
-    while result_str[0] == result_str[4] and result_str[4] == result_str[8]:
-        result_str = ' | '.join(random.choice(emotes) for i in range(3))
+    results = []
+    while len(set(results)) < 2:
+        results = [random.choice(emotes) for i in range(3)]
 
-    return result_str
-
-
+    return ' | '.join(results)
 
 cooldowns = {}
 
