@@ -72,7 +72,7 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='reload_fail_messages', description='Re-read the fail message table')
     async def reload_fail_messages(self, interaction):
-        await load_fail_messages()()
+        await load_fail_messages()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
