@@ -25,9 +25,6 @@ env = os.getenv('BOT_ENV')
 load_loot_table()
 load_fail_messages()
 
-# cooldown in seconds
-gamba_cooldown = 300
-
 # make a losing roll
 def lose_roll():
     emotes = ['🍒', '🌈', '🍎', '🍋', '🍍', '🔔', '💎', '💰', '🍀']
@@ -80,10 +77,10 @@ class Gamba(commands.Cog):
         if interaction.user.id not in cooldowns:
             cooldowns[interaction.user.id] = timestamp()-700
 
-        cooldown = 300
+        cooldown = 240
         for role in interaction.user.roles:
             if role.name == '[Booster]':
-                cooldown = 180
+                cooldown = 150
                 break
 
         hot_hour = await self.get_hot_hour()
