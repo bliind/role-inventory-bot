@@ -9,21 +9,29 @@ import db
 from dotdict import dotdict
 
 # load the loot table according to the environment
-async def load_loot_table():
+def load_loot_table():
     global loot_table
     file = 'loot_table.json' if env == 'prod' else 'loot_table.test.json'
     with open(file, encoding='utf8') as stream:
         loot_table = json.load(stream)
     loot_table = dotdict(loot_table)
 
-async def load_fail_messages():
+def load_fail_messages():
     global fail_messages
     with open('fail_messages.json', encoding='utf8') as stream:
         fail_messages = json.load(stream)
 
+def load_gamba_cfg():
+    global gamba_cfg
+    file = 'gamba_cfg.json' if env == 'prod' else 'gamba_cfg.test.json'
+    with open(file, encoding='utf8') as stream:
+        gamba_cfg = json.load(stream)
+    gamba_cfg = dotdict(gamba_cfg)
+
 env = os.getenv('BOT_ENV')
 load_loot_table()
 load_fail_messages()
+load_gamba_cfg()
 
 # make a losing roll
 def lose_roll():
@@ -49,6 +57,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.mine, guild=self.server)
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
+        self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
         self.hot_hour = {
             "hour": 0,
             "active": False,
@@ -64,12 +73,17 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
-        await load_loot_table()
+        load_loot_table()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
     @app_commands.command(name='reload_fail_messages', description='Re-read the fail message table')
     async def reload_fail_messages(self, interaction):
-        await load_fail_messages()
+        load_fail_messages()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
+
+    @app_commands.command(name='reload_slots_cfg', description='Reload the ROCK SLOTS config')
+    async def reload_slots_cfg(self, interaction):
+        load_gamba_cfg()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
@@ -77,10 +91,10 @@ class Gamba(commands.Cog):
         if interaction.user.id not in cooldowns:
             cooldowns[interaction.user.id] = timestamp()-700
 
-        cooldown = 240
+        cooldown = gamba_cfg.cooldown
         for role in interaction.user.roles:
             if role.name == '[Booster]':
-                cooldown = 150
+                cooldown = gamba_cfg.booster_cooldown
                 break
 
         hot_hour = await self.get_hot_hour()
@@ -104,7 +118,7 @@ class Gamba(commands.Cog):
 
         # if hot hour, 1 minute cooldown for everyone
         if self.hot_hour['active']:
-            cooldown = 60
+            cooldown = gamba_cfg.hot_hour_cooldown
 
         # check last spin for the user
         # cooldown, now - then < cooldown
@@ -174,3 +188,4 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('mine', guild=self.server)
         self.bot.tree.remove_command('reload_loot_table', guild=self.server)
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
+        self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
