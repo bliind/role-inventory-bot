@@ -5,7 +5,7 @@ import datetime
 import discord
 from discord import app_commands
 from discord.ext import commands
-import db
+import slotsdb
 from dotdict import dotdict
 
 # load the loot table according to the environment
@@ -41,8 +41,6 @@ def lose_roll():
         results = [random.choice(emotes) for i in range(3)]
 
     return ' | '.join(results)
-
-cooldowns = {}
 
 # quick and dirty epoch timestamp
 def timestamp():
@@ -88,17 +86,25 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
+        # defer response so we don't lag out
         await interaction.response.defer(ephemeral=True)
 
-        if interaction.user.id not in cooldowns:
-            cooldowns[interaction.user.id] = timestamp()-700
+        # get user last roll from db
+        last_roll = await slotsdb.get_last_slot_pull(interaction.user.id)
+        # if user has no last, give them one 700 seconds ago
+        if not last_roll:
+            last_roll = {"datestamp": timestamp()-700}
 
+        # lower cooldown for boosters
         cooldown = gamba_cfg.cooldown
         for role in interaction.user.roles:
             if role.name == '[Booster]':
                 cooldown = gamba_cfg.booster_cooldown
                 break
 
+        # hot hour can activate at the beginning of an hour
+        # it should remain active until that hour is over
+        # has an increasing chance to trigger every hour it doesn't trigger
         hot_hour = await self.get_hot_hour()
         now = datetime.datetime.now()
         if hot_hour['active']:
@@ -124,10 +130,10 @@ class Gamba(commands.Cog):
 
         # check last spin for the user
         # cooldown, now - then < cooldown
-        seconds_left = timestamp() - cooldowns[interaction.user.id]
+        seconds_left = timestamp() - last_roll['datestamp']
         if (seconds_left < cooldown):
             # count down how much time left till it's up
-            s_l = (cooldowns[interaction.user.id] + cooldown) - timestamp()
+            s_l = (last_roll['datestamp'] + cooldown) - timestamp()
             minutes = int(s_l / 60)
             seconds = int(s_l - (minutes*60))
             time_string = ''
@@ -152,7 +158,7 @@ class Gamba(commands.Cog):
                 break
 
         # save the timestamp for the cooldown
-        cooldowns[interaction.user.id] = timestamp()
+        await slotsdb.save_slot_pull(interaction.user.id, timestamp())
 
         # Create a pretty embed
         embed = discord.Embed(
