@@ -56,18 +56,6 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
-        self.hot_hour = {
-            "hour": 0,
-            "active": False,
-            "odds": 6
-        }
-
-    async def get_hot_hour(self):
-        return self.hot_hour
-
-    async def change_hot_hour(self, hot_hour):
-        for k,v in hot_hour.items():
-            self.hot_hour[k] = v
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -105,27 +93,28 @@ class Gamba(commands.Cog):
         # hot hour can activate at the beginning of an hour
         # it should remain active until that hour is over
         # has an increasing chance to trigger every hour it doesn't trigger
-        hot_hour = await self.get_hot_hour()
+        hot_hour = dict(await slotsdb.get_hot_hour())
         now = datetime.datetime.now()
-        if hot_hour['active']:
+        if hot_hour['active'] == 1:
             if hot_hour['hour'] != now.hour:
                 # if hot hour is active but we're not in that hour anymore, turn it off
-                await self.change_hot_hour({"active": False})
+                await slotsdb.change_hot_hour(active=0)
+                hot_hour['active'] = 0
         else:
             # if we're not in a checked hour and close to the start of the hour
             if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
                 # and we hit the current chance
                 if random.randrange(1,hot_hour['odds']) == 1:
                     # activate hot hour and send a message to the channel
-                    await self.change_hot_hour({"active": True, "odds": 6})
+                    await slotsdb.change_hot_hour(active=1, odds=6)
                     await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
                 else:
-                    await self.change_hot_hour({"odds": self.hot_hour['odds'] - 1})
+                    await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 
-            await self.change_hot_hour({"hour": now.hour})
+            await slotsdb.change_hot_hour(hour=now.hour)
 
         # if hot hour, 1 minute cooldown for everyone
-        if self.hot_hour['active']:
+        if hot_hour['active']:
             cooldown = gamba_cfg.hot_hour_cooldown
 
         # check last spin for the user

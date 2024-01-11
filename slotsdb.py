@@ -27,3 +27,35 @@ async def get_last_slot_pull(user_id):
         }
     except:
         return None
+
+async def get_hot_hour():
+    try:
+        async with aiosqlite.connect('slots.db') as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute('SELECT * FROM hot_hour')
+            row = await cursor.fetchone()
+    except Exception as e:
+        print('Failed to get hot hour data:')
+        print(e)
+        return
+
+    return row
+
+async def change_hot_hour(hour=None, active=None, odds=None):
+    changes = {}
+    params = {"hour": hour, "active": active, "odds": odds}
+    for f,v in params.items():
+        if v != None: changes[f] = v
+
+    sql = 'UPDATE hot_hour SET ('
+    sql += ','.join(changes.keys()) + ') = ('
+    sql += ','.join(['?' for i in changes.keys()]) + ')'
+
+    try:
+        async with aiosqlite.connect('slots.db') as db:
+            await db.execute(sql, list(changes.values()))
+            await db.commit()
+    except Exception as e:
+        print('Failed to change hot hour:')
+        print(e, hour, active, odds)
+
