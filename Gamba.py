@@ -88,6 +88,8 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
+        await interaction.response.defer(ephemeral=True)
+
         if interaction.user.id not in cooldowns:
             cooldowns[interaction.user.id] = timestamp()-700
 
@@ -136,7 +138,7 @@ class Gamba(commands.Cog):
             if seconds:
                 time_string += f'{seconds} second{"s" if seconds > 1 else ""}'
 
-            await interaction.response.send_message(f'Still cooling down from your last spin!\n\nTry again in {time_string}', ephemeral=True)
+            await interaction.followup.send(f'Still cooling down from your last spin!\n\nTry again in {time_string}')
             return
 
         # roll a random number,
@@ -167,18 +169,27 @@ class Gamba(commands.Cog):
             if interaction.user.id != 821114303377309696:
                 fail_msgs.append("LemonSlayR is a better miner than you")
             embed.description = f'{lose_roll()}\n\n{random.choice(fail_msgs)}'
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
         else:
-            # won, show publicly
-            embed.description = f'{loot_table[award]["spin"]}\n\nYou won the {award} role!'
+            # won
+            win_spin = f'{loot_table[award]["spin"]}'
+            embed.description = f'{win_spin}\n\nYou won the {award} role!'
             if award == 'GOLDEN JEFF':
-                # rarest spin gets a different message
-                embed.description += f' I didn\'t even know that was possible!!'
+                    # rarest reward gets a special message
+                    embed.description += ' I didn\'t even know that was possible!!'
+
             if award == 'Rock':
-                embed.description = f'{loot_table[award]["spin"]}\n\nOh cool, you won a rock.'
-                await interaction.response.send_message(embed=embed, ephemeral=True)
+                # don't show rock public, too common
+                embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
+                await interaction.followup.send(embed=embed, ephemeral=True)
             else:
-                await interaction.response.send_message(embed=embed)
+                # everything else show public
+
+                # delete the deferred response
+                await interaction.delete_original_response()
+
+                # send to the channel, ping the user
+                await interaction.channel.send(interaction.user.mention, embed=embed)
 
             # oh yeah give the user the role
             await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
