@@ -36,7 +36,7 @@ load_gamba_cfg()
 # make a losing roll
 def lose_roll():
     emotes = ['🍒', '🌈', '🍎', '🍋', '🍍', '🔔', '💎', '💰', '🍀', '🥝']
-    if random.randrange(1,1001) == 1:
+    if random.randrange(1,501) == 1:
         emotes.append('✨')
     results = []
     while len(set(results)) < 2:
