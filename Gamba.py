@@ -150,9 +150,6 @@ class Gamba(commands.Cog):
                 award = loot[0]
                 break
 
-        # save the timestamp for the cooldown
-        await slotsdb.save_slot_pull(interaction.user.id, timestamp())
-
         # Create a pretty embed
         embed = discord.Embed(
             color=discord.Color.blue(),
@@ -192,6 +189,9 @@ class Gamba(commands.Cog):
 
             # oh yeah give the user the role
             await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
+
+        # save the timestamp for the cooldown
+        await slotsdb.save_slot_pull(interaction.user.id, timestamp())
 
     async def cog_unload(self):
         """this gets called if the cog gets unloaded, remove commands from tree"""
