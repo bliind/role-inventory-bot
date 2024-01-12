@@ -1,5 +1,6 @@
 {
     "cooldown": 235,
     "booster_cooldown": 145,
-    "hot_hour_cooldown": 45
+    "hot_hour_cooldown": 45,
+    "frenzy_alert_role": 1194685535667626116
 }

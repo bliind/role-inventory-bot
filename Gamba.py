@@ -109,7 +109,7 @@ class Gamba(commands.Cog):
                 if random.randrange(1,hot_hour['odds']) == 1:
                     # activate hot hour and send a message to the channel
                     await slotsdb.change_hot_hour(active=1, odds=6)
-                    await interaction.channel.send('# Whoa it\'s getting really **ROCKY** in here')
+                    await interaction.channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
                 else:
                     await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 
