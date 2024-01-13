@@ -33,8 +33,8 @@ load_loot_table()
 load_fail_messages()
 load_gamba_cfg()
 
-# make a losing roll
 def lose_roll():
+    """creates a losing roll"""
     emotes = ['🍎', '🍋', '🍒', '💰', '🔔', '💎', '🍍', '🍀', '🥝', '🌈']
     if random.randrange(1,501) == 1:
         emotes.append('✨')
@@ -44,12 +44,13 @@ def lose_roll():
 
     return ' | '.join(results)
 
-# quick and dirty epoch timestamp
 def timestamp():
+    """quick and dirty epoch timestamp"""
     now = datetime.datetime.now()
     return int(round(now.timestamp()))
 
 def seconds_to_time_string(seconds_left):
+    """convert an amount of seconds into a minutes and seconds string"""
     minutes = int(seconds_left / 60)
     seconds = int(seconds_left - (minutes*60))
     time_string = ''
@@ -63,6 +64,7 @@ def seconds_to_time_string(seconds_left):
     return time_string
 
 def make_embed(color, description=None):
+    """Create a discord embed with standard styling"""
     color = getattr(discord.Color, color)
     embed = discord.Embed(
         color=color(),
@@ -84,21 +86,6 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
         self.check_hot_hour.start()
-
-    @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
-    async def reload_loot_table(self, interaction):
-        load_loot_table()
-        await interaction.response.send_message('Reloaded', ephemeral=True)
-
-    @app_commands.command(name='reload_fail_messages', description='Re-read the fail message table')
-    async def reload_fail_messages(self, interaction):
-        load_fail_messages()
-        await interaction.response.send_message('Reloaded', ephemeral=True)
-
-    @app_commands.command(name='reload_slots_cfg', description='Reload the ROCK SLOTS config')
-    async def reload_slots_cfg(self, interaction):
-        load_gamba_cfg()
-        await interaction.response.send_message('Reloaded', ephemeral=True)
 
     async def check_cooldown(self, user):
         # get user last roll from db
@@ -127,6 +114,21 @@ class Gamba(commands.Cog):
 
         return 0
 
+    @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
+    async def reload_loot_table(self, interaction):
+        load_loot_table()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
+
+    @app_commands.command(name='reload_fail_messages', description='Re-read the fail message table')
+    async def reload_fail_messages(self, interaction):
+        load_fail_messages()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
+
+    @app_commands.command(name='reload_slots_cfg', description='Reload the ROCK SLOTS config')
+    async def reload_slots_cfg(self, interaction):
+        load_gamba_cfg()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
+
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
         # defer response so we don't lag out
@@ -149,42 +151,31 @@ class Gamba(commands.Cog):
                 award = loot[0]
                 break
 
-        # Create a pretty embed
-        embed = discord.Embed(
-            color=discord.Color.blue(),
-            title='Rock Slots!'
-        )
-        # embed.set_footer(text=roll) # for debug to show the roll
-        # fancy thumbnail to look nice
-        embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
-
         if not award:
             # no win, show only to user who spun
             fail_msgs = fail_messages[:]
             if interaction.user.id != 821114303377309696:
                 fail_msgs.append("LemonSlayR is a better miner than you")
-            embed.description = f'{lose_roll()}\n\n{random.choice(fail_msgs)}'
+
+            embed = make_embed('red', f'{lose_roll()}\n\n{random.choice(fail_msgs)}')
             await interaction.followup.send(embed=embed, ephemeral=True)
         else:
             # won
             win_spin = f'{loot_table[award]["spin"]}'
-            embed.description = f'{win_spin}\n\nYou won the {award} role!'
+            embed = make_embed('green', f'{win_spin}\n\nYou won the {award} role!')
             if award == 'GOLDEN JEFF':
                     # rarest reward gets a special message
                     embed.description += ' I didn\'t even know that was possible!!'
-
             if award == 'Rock':
                 # don't show rock public, too common
                 embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
                 await interaction.followup.send(embed=embed, ephemeral=True)
             else:
                 # everything else show public
-
-                # delete the deferred response
-                await interaction.delete_original_response()
-
                 # send to the channel, ping the user
                 await interaction.channel.send(interaction.user.mention, embed=embed)
+                # delete the deferred response
+                await interaction.delete_original_response()
 
             # oh yeah give the user the role
             await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
