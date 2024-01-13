@@ -82,6 +82,7 @@ class Gamba(commands.Cog):
         self.config = config
         self.server = discord.Object(id=config.server)
         self.bot.tree.add_command(self.mine, guild=self.server)
+        self.bot.tree.add_command(self.spin, guild=self.server)
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
@@ -128,6 +129,36 @@ class Gamba(commands.Cog):
     async def reload_slots_cfg(self, interaction):
         load_gamba_cfg()
         await interaction.response.send_message('Reloaded', ephemeral=True)
+
+    @app_commands.command(name='spin', description='Spin the slots!')
+    async def spin(self, interaction):
+        # defer response
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        # check time left
+        time_left = await self.check_cooldown(interaction.user)
+        if time_left > 0:
+            time_string = seconds_to_time_string(time_left)
+            await interaction.edit_original_response(content=f'Still cooling down from your last spin!\n\nTry again in {time_string}')
+            return
+
+        # spin the slots!
+        possibles = list(gamba_cfg.rewards.keys())
+        results = [random.choice(possibles) for i in range(3)]
+        result_str = ' | '.join(results)
+
+        if len(set(results)) == 1:
+            # if winner, send the message to all
+            embed = make_embed('green', f'{result_str}\n\nYou won a {gamba_cfg.rewards[results[0]]}!')
+            await interaction.channel.send(interaction.user.mention, embed=embed)
+            await interaction.delete_original_response()
+        else:
+            # loser gets a private message
+            embed = make_embed('red', f'{result_str}\n\n{random.choice(gamba_cfg.fail_messages)}')
+            await interaction.followup.send(embed=embed)
+
+        # save the timestamp for the cooldown
+        await slotsdb.save_slot_pull(interaction.user.id, timestamp())
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
@@ -187,6 +218,7 @@ class Gamba(commands.Cog):
         """this gets called if the cog gets unloaded, remove commands from tree"""
         self.check_hot_hour.stop()
         self.bot.tree.remove_command('mine', guild=self.server)
+        self.bot.tree.remove_command('spin', guild=self.server)
         self.bot.tree.remove_command('reload_loot_table', guild=self.server)
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
