@@ -8,6 +8,7 @@ import datetime
 import asyncio
 import triviadb
 from dotdict import dotdict
+from TriviaView import TriviaView
 
 async def load_trivia(name):
     name = name.lower()
@@ -19,6 +20,8 @@ async def load_trivia(name):
         return data
     except:
         return False
+
+scores = {}
 
 class Trivia(commands.Cog):
     def __init__(self, bot, config):
@@ -85,9 +88,10 @@ class Trivia(commands.Cog):
             random.shuffle(self.trivia_questions)
 
         # print info about chosen quiz
-        string = f'## {self.trivia_data["name"]}\n\n'
+        string = f'## {self.trivia_data["name"]}\n'
         string += f'by {self.trivia_data["author"]}\n\n'
-        string += f'{len(self.trivia_questions)} questions\n\n'
+        string += f'{len(self.trivia_questions)} questions total\n\n'
+        string += f'Starts in 10 seconds..'
         embed = self.make_embed('blurple', description=string, title='Starting Quiz')
         await interaction.edit_original_response(embed=embed)
 
@@ -111,9 +115,9 @@ class Trivia(commands.Cog):
         self.trivia_channel = None
         self.current_question = None
 
-        await interaction.edit_original_response(content=f'Stopping: {string}')
+        await interaction.edit_original_response(content=string)
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=10)
     async def trivia_loop(self):
         # first loop skip to give some time
         if self.trivia_loop.current_loop == 0:
@@ -125,16 +129,22 @@ class Trivia(commands.Cog):
         if self.current_question:
             # show results for last question
             last_q = '## Time\'s up!\n\n'
-            last_q += f'The correct answer was: {self.current_question["answer"]}\n\n'
-            last_q += 'Next question in 30 seconds..'
+            last_q += f'The correct answer was: **{self.current_question["answer"]}**\n\n'
+            last_q += 'Next question in 10 seconds..'
             embed = self.make_embed('green', description=last_q)
             await channel.send(embed=embed)
+
+            # show current scores
+            msg = ''
+            for user_id, score in scores.items():
+                msg += f'<@{user_id}>: {score}\n'
+
+            score_embed = self.make_embed('teal', description=msg)
+            await channel.send(embed=score_embed)
 
             # do the next question on the next loop
             self.current_question = None
             return
-
-        # todo: show current scores
 
         if len(self.trivia_questions) == 0:
             # end quiz
@@ -158,5 +168,12 @@ class Trivia(commands.Cog):
 
         # create the embed
         embed = self.make_embed('yellow', description=this_q)
+        # create the view
+        letters = ['A','B','C','D']
+        correct = letters[answers.index(self.current_question['answer'])]
+        view = TriviaView(timeout=10, scores=scores, correct=correct)
+        question_msg = await channel.send(embed=embed, view=view)
 
-        await channel.send(embed=embed)
+        # update buttons to disabled when finished
+        await view.wait()
+        await question_msg.edit(embed=embed, view=view)
