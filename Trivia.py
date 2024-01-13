@@ -4,6 +4,8 @@ import json
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
+import datetime
+import asyncio
 import triviadb
 from dotdict import dotdict
 
@@ -30,11 +32,37 @@ class Trivia(commands.Cog):
         self.trivia_channel = None
         self.trivia_data = {}
         self.trivia_questions = []
-    
+        self.current_question = None
+
     def cog_unload(self):
         self.trivia_loop.stop()
         self.bot.tree.remove_command('start', guild=self.server)
         self.bot.tree.remove_command('stop', guild=self.server)
+
+    def make_embed(self, color, description=None, title=None):
+        # get the color function
+        color = getattr(discord.Color, color)
+
+        if title == None and 'name' in self.trivia_data:
+            # set title to quiz name if available
+            title = self.trivia_data['name']
+
+        # make the embed
+        embed = discord.Embed(
+            color=color(),
+            timestamp=datetime.datetime.now(),
+            title=title,
+            description=description
+        )
+
+        if 'icon' in self.trivia_data:
+            # if the quiz has an icon, use it
+            embed.set_thumbnail(url=self.trivia_data['icon'])
+
+        return embed
+
+    async def change_current_question(self, question):
+        self.current_question = question
 
     @app_commands.command(name='start', description='Start a round of Trivia')
     async def start(self, interaction: discord.Interaction, trivia_name: str):
@@ -60,8 +88,9 @@ class Trivia(commands.Cog):
         string = f'## {self.trivia_data["name"]}\n\n'
         string += f'by {self.trivia_data["author"]}\n\n'
         string += f'{len(self.trivia_questions)} questions\n\n'
-        string += 'Starting...'
-        await interaction.edit_original_response(content=string)
+        embed = self.make_embed('blurple', description=string, title='Starting Quiz')
+        await interaction.edit_original_response(embed=embed)
+
         # start loop
         self.trivia_loop.start()
 
@@ -75,25 +104,45 @@ class Trivia(commands.Cog):
         # defer response
         await interaction.response.defer(thinking=True, ephemeral=False)
 
-        self.trivia_loop.stop()
+        self.trivia_loop.cancel()
         self.trivia_data = {}
         self.trivia_started = False
         self.trivia_channel = None
+        self.current_question = None
 
         await interaction.edit_original_response(content='Stopped it, boss')
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=15)
     async def trivia_loop(self):
-        self.current_question = self.trivia_questions.pop(0)
-        q = self.current_question
+        # get channel for sending messages
         channel = self.bot.get_channel(self.trivia_channel)
-        answers = [q['answer'], *q['wrong_answers']]
+
+        # show results for last question
+        if self.current_question:
+            last_q = '## Time\'s up!\n\n'
+            last_q += f'The correct answer was: {self.current_question["answer"]}\n\n'
+            last_q += 'Next question in 10 seconds..'
+            embed = self.make_embed('green', description=last_q)
+
+        # show current scores?
+
+        # sleep, let them absorb the info
+        await asyncio.sleep(10)
+        # move to next question
+        cq = self.trivia_questions.pop(0)
+        await self.change_current_question(cq)
+
+        answers = [cq['answer'], *cq['wrong_answers']]
         random.shuffle(answers)
 
-        string = f'{q["question"]}\n\n'
-        string += f'a) {answers[0]}\n'
-        string += f'b) {answers[1]}\n'
-        string += f'c) {answers[2]}\n'
-        string += f'd) {answers[3]}'
+        # create the question/answer string
+        this_q = f'{cq["question"]}\n\n'
+        this_q += f'a) {answers[0]}\n'
+        this_q += f'b) {answers[1]}\n'
+        this_q += f'c) {answers[2]}\n'
+        this_q += f'd) {answers[3]}'
 
-        await channel.send(string)
+        # create the embed
+        embed = self.make_embed('yellow', description=this_q)
+
+        await channel.send(embed=embed)

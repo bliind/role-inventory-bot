@@ -1,6 +1,7 @@
 {
     "name": "Test Quiz",
     "author": "./swn",
+    "icon": "https://cdn.vox-cdn.com/thumbor/bZ887E7a7ElRWuwjDaHWkNTaiaw=/0x0:1024x1024/920x613/filters:focal(412x303:574x465):format(webp)/cdn.vox-cdn.com/uploads/chorus_image/image/72369338/Galactus.0.jpg",
     "questions": [
         {
             "question": "What color is the sky?",
