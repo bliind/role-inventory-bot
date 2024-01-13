@@ -14,7 +14,7 @@ class RoleInventory(commands.Cog):
 
         # add the commands to the tree
         self.bot.tree.add_command(self.add_role, guild=self.server)
-        self.bot.tree.add_command(self.remove_role, guild=self.server)
+        self.bot.tree.add_command(self.store_role, guild=self.server)
         self.bot.tree.add_command(self.save_roles, guild=self.server)
 
     def make_embed(self, color, description=None):
@@ -32,7 +32,7 @@ class RoleInventory(commands.Cog):
     async def cog_unload(self):
         """this gets called when the cog is unloaded, remove the commands from the tree"""
         self.bot.tree.remove_command('add_role', guild=self.server)
-        self.bot.tree.remove_command('remove_role', guild=self.server)
+        self.bot.tree.remove_command('store_role', guild=self.server)
         self.bot.tree.remove_command('save_roles', guild=self.server)
 
     @app_commands.command(name='save_roles', description='Take a snapshot of your current roles')
@@ -59,8 +59,8 @@ class RoleInventory(commands.Cog):
         embed = self.make_embed('green', 'Roles saved!')
         await interaction.edit_original_response(embed=embed)
 
-    @app_commands.command(name='remove_role', description='Remove a role and store it')
-    async def remove_role(self, interaction):
+    @app_commands.command(name='store_role', description='Store a role in my inventory')
+    async def store_role(self, interaction):
         """allows a user to remove a role and saves it"""
 
         # defer response for lag reasons
