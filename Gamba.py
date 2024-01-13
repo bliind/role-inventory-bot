@@ -4,7 +4,7 @@ import json
 import datetime
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 import slotsdb
 from dotdict import dotdict
 
@@ -49,6 +49,31 @@ def timestamp():
     now = datetime.datetime.now()
     return int(round(now.timestamp()))
 
+def seconds_to_time_string(seconds_left):
+    minutes = int(seconds_left / 60)
+    seconds = int(seconds_left - (minutes*60))
+    time_string = ''
+    if minutes:
+        time_string += f'{minutes} minute{"s" if minutes > 1 else ""}'
+    if minutes and seconds:
+        time_string += ', '
+    if seconds:
+        time_string += f'{seconds} second{"s" if seconds > 1 else ""}'
+
+    return time_string
+
+def make_embed(color, description=None):
+    color = getattr(discord.Color, color)
+    embed = discord.Embed(
+        color=color(),
+        title='Rock Slots!'
+    )
+    embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
+    if description:
+        embed.description = description
+
+    return embed
+
 class Gamba(commands.Cog):
     def __init__(self, bot, config):
         self.bot = bot
@@ -58,6 +83,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
+        self.check_hot_hour.start()
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -74,48 +100,22 @@ class Gamba(commands.Cog):
         load_gamba_cfg()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
-    @app_commands.command(name='mine', description='Open for a chance at a rare role!')
-    async def mine(self, interaction):
-        # defer response so we don't lag out
-        await interaction.response.defer(ephemeral=True)
-
+    async def check_cooldown(self, user):
         # get user last roll from db
-        last_roll = await slotsdb.get_last_slot_pull(interaction.user.id)
+        last_roll = await slotsdb.get_last_slot_pull(user.id)
         # if user has no last, give them one 700 seconds ago
         if not last_roll:
             last_roll = {"datestamp": timestamp()-700}
 
         # lower cooldown for boosters
         cooldown = gamba_cfg.cooldown
-        for role in interaction.user.roles:
+        for role in user.roles:
             if role.name == '[Booster]':
                 cooldown = gamba_cfg.booster_cooldown
                 break
 
-        # hot hour can activate at the beginning of an hour
-        # it should remain active until that hour is over
-        # has an increasing chance to trigger every hour it doesn't trigger
-        hot_hour = dict(await slotsdb.get_hot_hour())
-        now = datetime.datetime.now()
-        if hot_hour['active'] == 1:
-            if hot_hour['hour'] != now.hour:
-                # if hot hour is active but we're not in that hour anymore, turn it off
-                await slotsdb.change_hot_hour(active=0)
-                hot_hour['active'] = 0
-        else:
-            # if we're not in a checked hour and close to the start of the hour
-            if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
-                # and we hit the current chance
-                if random.randrange(1,hot_hour['odds']) == 1:
-                    # activate hot hour and send a message to the channel
-                    await slotsdb.change_hot_hour(active=1, odds=6)
-                    await interaction.channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
-                else:
-                    await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
-
-            await slotsdb.change_hot_hour(hour=now.hour)
-
-        # if hot hour, 1 minute cooldown for everyone
+        # check for hot hour
+        hot_hour = await slotsdb.get_hot_hour()
         if hot_hour['active']:
             cooldown = gamba_cfg.hot_hour_cooldown
 
@@ -123,19 +123,20 @@ class Gamba(commands.Cog):
         # cooldown, now - then < cooldown
         seconds_left = timestamp() - last_roll['datestamp']
         if (seconds_left < cooldown):
-            # count down how much time left till it's up
-            s_l = (last_roll['datestamp'] + cooldown) - timestamp()
-            minutes = int(s_l / 60)
-            seconds = int(s_l - (minutes*60))
-            time_string = ''
-            if minutes:
-                time_string += f'{minutes} minute{"s" if minutes > 1 else ""}'
-            if minutes and seconds:
-                time_string += ', '
-            if seconds:
-                time_string += f'{seconds} second{"s" if seconds > 1 else ""}'
+            return (last_roll['datestamp'] + cooldown) - timestamp()
 
-            await interaction.followup.send(f'Still cooling down from your last spin!\n\nTry again in {time_string}')
+        return 0
+
+    @app_commands.command(name='mine', description='Open for a chance at a rare role!')
+    async def mine(self, interaction):
+        # defer response so we don't lag out
+        await interaction.response.defer(ephemeral=True)
+
+        # check time left for user
+        time_left = await self.check_cooldown(interaction.user)
+        if time_left > 0:
+            time_string = seconds_to_time_string(time_left)
+            await interaction.edit_original_response(content=f'Still cooling down from your last spin!\n\nTry again in {time_string}')
             return
 
         # roll a random number,
@@ -193,7 +194,39 @@ class Gamba(commands.Cog):
 
     async def cog_unload(self):
         """this gets called if the cog gets unloaded, remove commands from tree"""
+        self.check_hot_hour.stop()
         self.bot.tree.remove_command('mine', guild=self.server)
         self.bot.tree.remove_command('reload_loot_table', guild=self.server)
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
+
+    @tasks.loop(minutes=1)
+    async def check_hot_hour(self):
+        try:
+            # hot hour can activate at the beginning of an hour
+            # it should remain active until that hour is over
+            # has an increasing chance to trigger every hour it doesn't trigger
+            hot_hour = dict(await slotsdb.get_hot_hour())
+            now = datetime.datetime.now()
+            if hot_hour['active'] == 1:
+                if hot_hour['hour'] != now.hour:
+                    # if hot hour is active but we're not in that hour anymore, turn it off
+                    await slotsdb.change_hot_hour(active=0)
+                    hot_hour['active'] = 0
+
+            if hot_hour['active'] == 0:
+                # if we're not in a checked hour and close to the start of the hour
+                if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
+                    # and we hit the current chance
+                    if random.randrange(1,hot_hour['odds']) == 1:
+                        # activate hot hour and send a message to the channel
+                        await slotsdb.change_hot_hour(active=1, odds=6)
+                        channel = self.bot.get_channel(gamba_cfg.slots_channel)
+                        await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
+                    else:
+                        await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
+
+                await slotsdb.change_hot_hour(hour=now.hour)
+        except Exception as e:
+            print('Error checking hot hour')
+            print(e)
