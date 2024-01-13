@@ -104,39 +104,53 @@ class Trivia(commands.Cog):
         # defer response
         await interaction.response.defer(thinking=True, ephemeral=False)
 
+        string = f'Stopping {self.trivia_data["name"]}'
         self.trivia_loop.cancel()
         self.trivia_data = {}
         self.trivia_started = False
         self.trivia_channel = None
         self.current_question = None
 
-        await interaction.edit_original_response(content='Stopped it, boss')
+        await interaction.edit_original_response(content=f'Stopping: {string}')
 
-    @tasks.loop(seconds=15)
+    @tasks.loop(seconds=30)
     async def trivia_loop(self):
+        # first loop skip to give some time
+        if self.trivia_loop.current_loop == 0:
+            return
+
         # get channel for sending messages
         channel = self.bot.get_channel(self.trivia_channel)
 
-        # show results for last question
         if self.current_question:
+            # show results for last question
             last_q = '## Time\'s up!\n\n'
             last_q += f'The correct answer was: {self.current_question["answer"]}\n\n'
-            last_q += 'Next question in 10 seconds..'
+            last_q += 'Next question in 30 seconds..'
             embed = self.make_embed('green', description=last_q)
+            await channel.send(embed=embed)
 
-        # show current scores?
+            # do the next question on the next loop
+            self.current_question = None
+            return
 
-        # sleep, let them absorb the info
-        await asyncio.sleep(10)
-        # move to next question
-        cq = self.trivia_questions.pop(0)
-        await self.change_current_question(cq)
+        # todo: show current scores
 
-        answers = [cq['answer'], *cq['wrong_answers']]
+        if len(self.trivia_questions) == 0:
+            # end quiz
+            embed = self.make_embed('blurple', description='Quiz over!\n\nThanks for playing')
+            await channel.send(embed=embed)
+            # todo: final scores
+            self.trivia_loop.cancel()
+            return
+
+        # next question
+        self.current_question = self.trivia_questions.pop(0)
+        answers = [self.current_question['answer'], *self.current_question['wrong_answers']]
         random.shuffle(answers)
 
         # create the question/answer string
-        this_q = f'{cq["question"]}\n\n'
+        this_q = f'{self.current_question["question"]}\n\n'
         this_q += f'a) {answers[0]}\n'
         this_q += f'b) {answers[1]}\n'
         this_q += f'c) {answers[2]}\n'
