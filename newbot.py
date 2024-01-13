@@ -23,7 +23,7 @@ load_config()
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix='>', intents=intents)
 
-cogs = ['RoleInventory', 'Gamba']
+cogs = ['RoleInventory', 'Gamba', 'Trivia']
 
 @bot.event
 async def on_ready():

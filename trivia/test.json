@@ -1,0 +1,31 @@
+{
+    "name": "Test Quiz",
+    "author": "./swn",
+    "questions": [
+        {
+            "question": "What color is the sky?",
+            "answer": "blue",
+            "wrong_answers": ["green", "purple", "orange"]
+        },
+        {
+            "question": "Where is Big Ben located?",
+            "answer": "London",
+            "wrong_answers": ["Paris", "Berlin", "Warsaw"]
+        },
+        {
+            "question": "Where is the Eiffel Tower located?",
+            "answer": "Paris",
+            "wrong_answers": ["London", "Berlin", "Warsaw"]
+        },
+        {
+            "question": "Who is Simba's dad?",
+            "answer": "Mufasa",
+            "wrong_answers": ["Scar", "Shenzi", "Pumbaa"]
+        },
+        {
+            "question": "Who is the cowboy in Toy Story?",
+            "answer": "Woody",
+            "wrong_answers": ["Buzz", "Stretch", "Rex"]
+        }
+    ]
+}
