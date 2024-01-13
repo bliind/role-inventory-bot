@@ -76,7 +76,7 @@ class RoleInventory(commands.Cog):
 
         # if they have no roles that can be removed just stop here
         if not user_roles:
-            embed = self.make_embed('yellow', 'You have no roles that can be removed.')
+            embed = self.make_embed('yellow', 'You have no roles that can be stored.')
             await interaction.edit_original_response(embed=embed)
             return
 
@@ -128,7 +128,7 @@ class RoleInventory(commands.Cog):
         # ensure the user has roles saved
         user_id = interaction.user.id
         if not await roledb.check_user(user_id):
-            embed = self.make_embed('red', 'You have not removed any roles yet!')
+            embed = self.make_embed('red', 'You have not stored any roles yet!')
             await interaction.edit_original_response(embed=embed)
             return
 
@@ -162,7 +162,7 @@ class RoleInventory(commands.Cog):
             description = f'''
                 Re-added your role "{selected["name"]}"!
 
-                You can remove roles with the /remove_role command.
+                You can store roles with the /store_role command.
             '''.replace(' '*12, '').strip()
         else:
             # timed out probably
