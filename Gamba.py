@@ -38,10 +38,12 @@ def lose_roll():
     emotes = ['🍎', '🍋', '🍒', '💰', '🔔', '💎', '🍍', '🍀', '🥝', '🌈']
     if random.randrange(1,501) == 1:
         emotes.append('✨')
-    results = []
-    while len(set(results)) < 2:
-        results = [random.choice(emotes) for i in range(3)]
-
+    # pick 2 emotes (might be the same)
+    results = [random.choice(emotes) for i in range(2)]
+    # remove one of the picked emotes from the list
+    emotes.pop(emotes.index(random.choice(results)))
+    # add an emote that definitely won't be a third like emote
+    results.append(random.choice(emotes))
     return ' | '.join(results)
 
 def timestamp():
