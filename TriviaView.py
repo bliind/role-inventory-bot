@@ -1,17 +1,24 @@
 import discord
 import datetime
 
+def timestamp():
+    now = datetime.datetime.now()
+    return int(round(now.timestamp()))
+
+def calculate_score(time1, time2):
+    max_score = 1000
+    decrement = 64
+    diff = time2 - time1
+
+    return int(max_score - (decrement * diff))
+
 class TriviaView(discord.ui.View):
-    def __init__(self, timeout, scores, correct):
+    def __init__(self, timeout, scores, correct, ts):
         super().__init__(timeout=timeout)
         self.scores = scores
         self.correct = correct
         self.used = []
-        # get timestamp to calc score
-
-    async def on_timeout(self):
-        for child in self.children:
-            child.disabled = True
+        self.timestamp = ts
 
     @discord.ui.button(label='A', style=discord.ButtonStyle.green)
     async def button_a(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -26,7 +33,7 @@ class TriviaView(discord.ui.View):
 
         # if correct answer, increment score
         if self.correct == 'A':
-            self.scores[user_id] += 1
+            self.scores[user_id] += calculate_score(self.timestamp, timestamp())
         self.used.append(user_id)
 
     @discord.ui.button(label='B', style=discord.ButtonStyle.green)
@@ -42,7 +49,7 @@ class TriviaView(discord.ui.View):
 
         # if correct answer, increment score
         if self.correct == 'B':
-            self.scores[user_id] += 1
+            self.scores[user_id] += calculate_score(self.timestamp, timestamp())
         self.used.append(user_id)
 
     @discord.ui.button(label='C', style=discord.ButtonStyle.green)
@@ -58,7 +65,7 @@ class TriviaView(discord.ui.View):
 
         # if correct answer, increment score
         if self.correct == 'C':
-            self.scores[user_id] += 1
+            self.scores[user_id] += calculate_score(self.timestamp, timestamp())
         self.used.append(user_id)
 
     @discord.ui.button(label='D', style=discord.ButtonStyle.green)
@@ -74,5 +81,5 @@ class TriviaView(discord.ui.View):
 
         # if correct answer, increment score
         if self.correct == 'D':
-            self.scores[user_id] += 1
+            self.scores[user_id] += calculate_score(self.timestamp, timestamp())
         self.used.append(user_id)
