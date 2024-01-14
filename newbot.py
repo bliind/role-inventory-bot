@@ -61,6 +61,12 @@ async def reload_cog(interaction: discord.Interaction, cog: str):
     else:
         await interaction.followup.send(f'Unknown Cog: {cog}')
 
+@reload_cog.autocomplete('cog')
+async def autocomplete_cog(interaction: discord.Interaction, current: str):
+    return [
+        app_commands.Choice(name=cog, value=cog) for cog in cogs if cog.startswith(current)
+    ]
+
 @app_commands.command(name='reload_config', description='Reload the bot config')
 async def reload_config(interaction):
     load_config()
