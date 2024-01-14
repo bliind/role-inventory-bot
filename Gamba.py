@@ -183,6 +183,16 @@ class Gamba(commands.Cog):
         # save the timestamp for the cooldown
         await slotsdb.save_slot_pull(interaction.user.id, timestamp())
 
+    async def change_avatar(self, avatar):
+        image_file = None
+        if avatar == 'base':
+            image_file = 'BaseGoose.png'
+        if avatar == 'luca':
+            image_file = 'LucaGoose.png'
+        if image_file:
+            with open(image_file, 'rb') as image:
+                await self.bot.user.edit(avatar=image.read())
+
     async def cog_unload(self):
         """this gets called if the cog gets unloaded, remove commands from tree"""
         self.check_hot_hour.stop()
@@ -205,15 +215,20 @@ class Gamba(commands.Cog):
                     await slotsdb.change_hot_hour(active=0)
                     hot_hour['active'] = 0
 
+                    # change avatar to BaseGoose
+                    await self.change_avatar('base')
+
             if hot_hour['active'] == 0:
                 # if we're not in a checked hour and close to the start of the hour
-                if hot_hour['hour'] != now.hour and now.minute >= 0 and now.minute <= 10:
+                if hot_hour['hour'] != now.hour:# and now.minute >= 0 and now.minute <= 10:
                     # and we hit the current chance
                     if random.randrange(1,hot_hour['odds']) == 1:
                         # activate hot hour and send a message to the channel
                         await slotsdb.change_hot_hour(active=1, odds=6)
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
                         await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
+                        # change avatar to LucaGoose
+                        await self.change_avatar('luca')
                     else:
                         await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 
