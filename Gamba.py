@@ -84,6 +84,7 @@ class Gamba(commands.Cog):
         self.config = config
         self.server = discord.Object(id=config.server)
         self.bot.tree.add_command(self.mine, guild=self.server)
+        self.bot.tree.add_command(self.scava, guild=self.server)
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
@@ -133,6 +134,13 @@ class Gamba(commands.Cog):
 
     @app_commands.command(name='mine', description='Open for a chance at a rare role!')
     async def mine(self, interaction):
+        return await self.mine_stuff(interaction)
+
+    @app_commands.command(name='scava', description='Aperto per un\'opportunità per un ruolo raro')
+    async def scava(self, interaction):
+        return await self.mine_stuff(interaction)
+
+    async def mine_stuff(self, interaction):
         # defer response so we don't lag out
         await interaction.response.defer(ephemeral=True)
 
@@ -199,6 +207,7 @@ class Gamba(commands.Cog):
         """this gets called if the cog gets unloaded, remove commands from tree"""
         self.check_hot_hour.stop()
         self.bot.tree.remove_command('mine', guild=self.server)
+        self.bot.tree.remove_command('scava', guild=self.server)
         self.bot.tree.remove_command('reload_loot_table', guild=self.server)
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
