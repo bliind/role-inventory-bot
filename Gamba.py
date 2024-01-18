@@ -136,7 +136,7 @@ class Gamba(commands.Cog):
     async def mine(self, interaction):
         return await self.mine_stuff(interaction)
 
-    @app_commands.command(name='scava', description='Aperto per un\'opportunità per un ruolo raro')
+    @app_commands.command(name='scava', description='Apri per un\'opportunità ad un ruolo raro')
     async def scava(self, interaction):
         return await self.mine_stuff(interaction)
 
