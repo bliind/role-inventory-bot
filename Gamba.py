@@ -233,15 +233,15 @@ class Gamba(commands.Cog):
                 # if we're not in a checked hour and close to the start of the hour
                 if hot_hour['hour'] != now.hour:# and now.minute >= 0 and now.minute <= 10:
                     # and we hit the current chance
-                    if random.randrange(1,hot_hour['odds']) == 1:
+                    if random.randrange(1, hot_hour['odds']+1) <= 3:
                         # activate hot hour and send a message to the channel
-                        await slotsdb.change_hot_hour(active=1, odds=6)
+                        await slotsdb.change_hot_hour(active=1, odds=10)
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
                         await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
                         # change avatar to LucaGoose
                         await self.change_avatar('luca')
                     else:
-                        await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
+                        await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 2)
 
                 await slotsdb.change_hot_hour(hour=now.hour)
         except Exception as e:
