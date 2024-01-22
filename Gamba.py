@@ -164,8 +164,8 @@ class Gamba(commands.Cog):
         if not award:
             # no win, show only to user who spun
             fail_msgs = fail_messages[:]
-            if interaction.user.id != 821114303377309696:
-                fail_msgs.append("LemonSlayR is a better miner than you")
+            if interaction.user.id != 78488223046701056:
+                fail_msgs.append("Sigphale is a better miner than you")
 
             embed = make_embed('red', f'{lose_roll()}\n\n{random.choice(fail_msgs)}')
             await interaction.followup.send(embed=embed, ephemeral=True)
