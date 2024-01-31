@@ -88,7 +88,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
-        self.check_hot_hour.start()
+        # self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
         # get user last roll from db
@@ -104,10 +104,10 @@ class Gamba(commands.Cog):
                 cooldown = gamba_cfg.booster_cooldown
                 break
 
-        # check for hot hour
-        hot_hour = await slotsdb.get_hot_hour()
-        if hot_hour['active']:
-            cooldown = gamba_cfg.hot_hour_cooldown
+        # # check for hot hour
+        # hot_hour = await slotsdb.get_hot_hour()
+        # if hot_hour['active']:
+        #     cooldown = gamba_cfg.hot_hour_cooldown
 
         # check last spin for the user
         # cooldown, now - then < cooldown
