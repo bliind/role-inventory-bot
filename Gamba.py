@@ -89,6 +89,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
         self.bot.tree.add_command(self.goose_say, guild=self.server)
+        self.bot.tree.add_command(self.check_spins, guild=self.server)
         # self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
@@ -127,6 +128,11 @@ class Gamba(commands.Cog):
             await interaction.channel.send(msg)
             await interaction.delete_original_response()
 
+    @app_commands.command(name='check_spins', description='See how many times you spun the ROCK SLOTS!')
+    async def check_spins(self, interaction):
+        await interaction.response.defer(ephemeral=True)
+        total = await slotsdb.get_total_pulls(interaction.user.id)
+        await interaction.edit_original_response(content=f'You spun the ROCK SLOTS {total} times!')
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -223,6 +229,7 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
         self.bot.tree.remove_command('goose_say', guild=self.server)
+        self.bot.tree.remove_command('check_spins', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):

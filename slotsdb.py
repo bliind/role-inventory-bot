@@ -28,6 +28,17 @@ async def get_last_slot_pull(user_id):
     except:
         return None
 
+async def get_total_pulls(user_id):
+    try:
+        async with aiosqlite.connect('slots.db') as db:
+            cursor = await db.execute('SELECT count(id) AS count FROM gamba WHERE user_id = ?', (user_id,))
+            row = await cursor.fetchone()
+    except Exception as e:
+        print('Failed to get total pulls:')
+        print(e, user_id)
+
+    return row[0]
+
 async def get_hot_hour():
     try:
         async with aiosqlite.connect('slots.db') as db:
