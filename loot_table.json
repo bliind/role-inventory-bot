@@ -30,27 +30,27 @@
         "spin": "💎 | 💎 | 💎"
     },
     "Vibranium": {
-        "chance": 2000,
+        "chance": 1000,
         "role": 1194006746893660264,
         "spin": "🍍 | 🍍 | 🍍"
     },
     "Flawless Rock": {
-        "chance": 4000,
+        "chance": 1000,
         "role": 1091878327628865556,
         "spin": "🍀 | 🍀 | 🍀"
     },
     "Platinum Vibranium": {
-        "chance": 7000,
+        "chance": 1000,
         "role": 1195159090171756594,
         "spin": "🥝 | 🥝 | 🥝"
     },
     "Prismatic Rock": {
-        "chance": 15000,
+        "chance": 5000,
         "role": 1193671665364762687,
         "spin": "🌈 | 🌈 | 🌈"
     },
     "GOLDEN JEFF": {
-        "chance": 150000,
+        "chance": 10000,
         "role": 1193672946426859560,
         "spin": "✨ | ✨ | ✨"
     }
