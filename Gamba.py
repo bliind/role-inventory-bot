@@ -88,6 +88,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
+        self.bot.tree.add_command(self.goose_say, guild=self.server)
         # self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
@@ -116,6 +117,16 @@ class Gamba(commands.Cog):
             return (last_roll['datestamp'] + cooldown) - timestamp()
 
         return 0
+
+    @app_commands.command(name='goose_say', description='Make Goose say something')
+    async def goose_say(self, interaction: discord.Interaction, msg: str):
+        if interaction.user.id not in [145971157902950401, 126491358239129600]:
+            await interaction.response.send_message('Uh, no', ephemeral=True)
+        else:
+            await interaction.response.defer()
+            await interaction.channel.send(msg)
+            await interaction.delete_original_response()
+
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -211,6 +222,7 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('reload_loot_table', guild=self.server)
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
+        self.bot.tree.remove_command('goose_say', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):
