@@ -30,17 +30,17 @@
         "spin": "💎 | 💎 | 💎"
     },
     "Vibranium": {
-        "chance": 1000,
+        "chance": 999,
         "role": 1194006746893660264,
         "spin": "🍍 | 🍍 | 🍍"
     },
     "Flawless Rock": {
-        "chance": 1000,
+        "chance": 1001,
         "role": 1091878327628865556,
         "spin": "🍀 | 🍀 | 🍀"
     },
     "Platinum Vibranium": {
-        "chance": 1000,
+        "chance": 1002,
         "role": 1195159090171756594,
         "spin": "🥝 | 🥝 | 🥝"
     },
