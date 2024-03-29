@@ -81,7 +81,7 @@ class RoleInventory(commands.Cog):
             return
 
         # create the fancy dropdown View to send
-        view = RoleView(user_roles, 'remove', 30)
+        view = RoleView(interaction, user_roles, 'remove', 30)
         embed = self.make_embed('blurple', 'Select a role to remove and store in my inventory!\n\nYou\'ll be able to retrieve it again with the /add_role command')
         await interaction.edit_original_response(embed=embed, view=view)
 
@@ -149,7 +149,7 @@ class RoleInventory(commands.Cog):
             return
 
         # create and send the fancy dropdown selection View
-        view = RoleView(user_roles, 'add', 30)
+        view = RoleView(interaction, user_roles, 'add', 30)
         embed = self.make_embed('blurple', 'Retreive a role you saved in my inventory!')
         await interaction.edit_original_response(embed=embed, view=view)
 
