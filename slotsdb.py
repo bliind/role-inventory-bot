@@ -39,6 +39,21 @@ async def get_total_pulls(user_id):
 
     return row[0]
 
+async def get_stats(user_id):
+    out = []
+    try:
+        async with aiosqlite.connect('pixelslots.db') as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute('SELECT count(id) as count, award FROM gamba WHERE user_id = ? GROUP BY award', (user_id,)) as cursor:
+                async for row in cursor:
+                    out.append(row)
+        return out
+    except Exception as e:
+        print('Failed to get stats:')
+        print(e, user_id)
+        return False
+
+
 async def get_hot_hour():
     try:
         async with aiosqlite.connect('pixelslots.db') as db:

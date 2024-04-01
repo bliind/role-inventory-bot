@@ -91,6 +91,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
         self.bot.tree.add_command(self.goose_say, guild=self.server)
         self.bot.tree.add_command(self.check_spins, guild=self.server)
+        self.bot.tree.add_command(self.get_stats, guild=self.server)
         self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
@@ -119,6 +120,19 @@ class Gamba(commands.Cog):
             return (last_roll['datestamp'] + cooldown) - timestamp()
 
         return 0
+
+    @app_commands.command(name='get_stats', description='Get your PIXEL SLOTS stats')
+    async def get_stats(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        total = await slotsdb.get_total_pulls(interaction.user.id)
+        stats = await slotsdb.get_stats(interaction.user.id)
+
+        content = f'You spun the PIXEL SLOTS {total} times!\n'
+        for stat in stats:
+            if stat['award'] != 'None':
+                plural = 's' if int(stat["count"]) > 1 else ''
+                content += f'\nYou won {stat["count"]} {stat["award"]}{plural}!'
+        await interaction.edit_original_response(content=content)
 
     @app_commands.command(name='goose_say', description='Make Goose say something')
     async def goose_say(self, interaction: discord.Interaction, msg: str):
@@ -231,6 +245,7 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
         self.bot.tree.remove_command('goose_say', guild=self.server)
         self.bot.tree.remove_command('check_spins', guild=self.server)
+        self.bot.tree.remove_command('get_stats', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):
