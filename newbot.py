@@ -9,6 +9,7 @@ import asyncio
 from dotdict import dotdict
 from Gamba import Gamba
 from RoleInventory import RoleInventory
+from EmoteMaker import EmoteMaker
 
 def load_config():
     global config
@@ -23,7 +24,7 @@ load_config()
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix='>', intents=intents)
 
-cogs = ['RoleInventory', 'Gamba']
+cogs = ['RoleInventory', 'Gamba', 'EmoteMaker']
 
 @bot.event
 async def on_ready():
