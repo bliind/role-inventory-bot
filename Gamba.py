@@ -35,7 +35,7 @@ load_gamba_cfg()
 
 def lose_roll():
     """creates a losing roll"""
-    emotes = ['🍎', '🍋', '🍒', '💰', '🔔', '💎', '🍍', '🍀', '🥝', '🌈']
+    emotes = ['🍎', '🍋', '🍒', '💰', '🔔', '💎', '🍍', '🍀', '🥝', '🌈', '🧁']
     if random.randrange(1,501) == 1:
         emotes.append('✨')
     # pick 2 emotes (might be the same)
@@ -70,9 +70,10 @@ def make_embed(color, description=None):
     color = getattr(discord.Color, color)
     embed = discord.Embed(
         color=color(),
-        title='Rock Slots!'
+        title='Pixel Slots!'
     )
-    embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
+    # embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
+    embed.set_thumbnail(url='https://i.imgur.com/AxPqhnq.jpeg')
     if description:
         embed.description = description
 
@@ -90,7 +91,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
         self.bot.tree.add_command(self.goose_say, guild=self.server)
         self.bot.tree.add_command(self.check_spins, guild=self.server)
-        # self.check_hot_hour.start()
+        self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
         # get user last roll from db
@@ -107,9 +108,9 @@ class Gamba(commands.Cog):
                 break
 
         # # check for hot hour
-        # hot_hour = await slotsdb.get_hot_hour()
-        # if hot_hour['active']:
-        #     cooldown = gamba_cfg.hot_hour_cooldown
+        hot_hour = await slotsdb.get_hot_hour()
+        if hot_hour['active']:
+            cooldown = gamba_cfg.hot_hour_cooldown
 
         # check last spin for the user
         # cooldown, now - then < cooldown
@@ -128,11 +129,11 @@ class Gamba(commands.Cog):
             await interaction.channel.send(msg)
             await interaction.delete_original_response()
 
-    @app_commands.command(name='check_spins', description='See how many times you spun the ROCK SLOTS!')
+    @app_commands.command(name='check_spins', description='See how many times you spun the PIXEL SLOTS!')
     async def check_spins(self, interaction):
         await interaction.response.defer(ephemeral=True)
         total = await slotsdb.get_total_pulls(interaction.user.id)
-        await interaction.edit_original_response(content=f'You spun the ROCK SLOTS {total} times!')
+        await interaction.edit_original_response(content=f'You spun the PIXEL SLOTS {total} times!')
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -144,7 +145,7 @@ class Gamba(commands.Cog):
         load_fail_messages()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
-    @app_commands.command(name='reload_slots_cfg', description='Reload the ROCK SLOTS config')
+    @app_commands.command(name='reload_slots_cfg', description='Reload the PIXEL SLOTS config')
     async def reload_slots_cfg(self, interaction):
         load_gamba_cfg()
         await interaction.response.send_message('Reloaded', ephemeral=True)
@@ -181,8 +182,8 @@ class Gamba(commands.Cog):
         if not award:
             # no win, show only to user who spun
             fail_msgs = fail_messages[:]
-            if interaction.user.id != 78488223046701056:
-                fail_msgs.append("Sigphale is a better miner than you")
+            # if interaction.user.id != 78488223046701056:
+            #     fail_msgs.append("Sigphale is a better miner than you")
 
             embed = make_embed('red', f'{lose_roll()}\n\n{random.choice(fail_msgs)}')
             await interaction.followup.send(embed=embed, ephemeral=True)
@@ -190,12 +191,12 @@ class Gamba(commands.Cog):
             # won
             win_spin = f'{loot_table[award]["spin"]}'
             embed = make_embed('green', f'{win_spin}\n\nYou won the {award} role!')
-            if award == 'GOLDEN JEFF':
+            if award == 'PIXEL GOLDEN JEFF':
                     # rarest reward gets a special message
                     embed.description += ' I didn\'t even know that was possible!!'
-            if award == 'Rock':
+            if award == 'Pixel Rock':
                 # don't show rock public, too common
-                embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
+                embed.description = f'{win_spin}\n\nOh cool, you won a pixel rock.'
                 await interaction.followup.send(embed=embed, ephemeral=True)
             else:
                 # everything else show public
@@ -208,7 +209,7 @@ class Gamba(commands.Cog):
             await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
 
         # save the timestamp for the cooldown
-        await slotsdb.save_slot_pull(interaction.user.id, timestamp())
+        await slotsdb.save_slot_pull(interaction.user.id, timestamp(), award)
 
     async def change_avatar(self, avatar):
         image_file = None
@@ -246,21 +247,21 @@ class Gamba(commands.Cog):
                     hot_hour['active'] = 0
 
                     # change avatar to BaseGoose
-                    await self.change_avatar('base')
+                    # await self.change_avatar('base')
 
             if hot_hour['active'] == 0:
                 # if we're not in a checked hour and close to the start of the hour
                 if hot_hour['hour'] != now.hour:# and now.minute >= 0 and now.minute <= 10:
                     # and we hit the current chance
-                    if random.randrange(1, hot_hour['odds']+1) <= 3:
+                    if random.randrange(1, hot_hour['odds']) == 1:
                         # activate hot hour and send a message to the channel
-                        await slotsdb.change_hot_hour(active=1, odds=10)
+                        await slotsdb.change_hot_hour(active=1, odds=6)
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
-                        await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
+                        await channel.send(f'# Whoa it\'s getting really **PIXELY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
                         # change avatar to LucaGoose
-                        await self.change_avatar('luca')
+                        # await self.change_avatar('luca')
                     else:
-                        await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 2)
+                        await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 
                 await slotsdb.change_hot_hour(hour=now.hour)
         except Exception as e:

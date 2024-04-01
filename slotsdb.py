@@ -1,10 +1,10 @@
 import aiosqlite
 import uuid
 
-async def save_slot_pull(user_id, datestamp):
+async def save_slot_pull(user_id, datestamp, award):
     try:
-        async with aiosqlite.connect('slots.db') as db:
-            await db.execute('INSERT INTO gamba (id, user_id, datestamp) VALUES (?, ?, ?)', (str(uuid.uuid4()), user_id, datestamp))
+        async with aiosqlite.connect('pixelslots.db') as db:
+            await db.execute('INSERT INTO gamba (id, user_id, datestamp, award) VALUES (?, ?, ?, ?)', (str(uuid.uuid4()), user_id, datestamp, str(award)))
             await db.commit()
     except Exception as e:
         print('Failed to save slot pull:')
@@ -12,7 +12,7 @@ async def save_slot_pull(user_id, datestamp):
 
 async def get_last_slot_pull(user_id):
     try:
-        async with aiosqlite.connect('slots.db') as db:
+        async with aiosqlite.connect('pixelslots.db') as db:
             cursor = await db.execute('SELECT * FROM gamba WHERE user_id = ? ORDER BY datestamp DESC', (user_id,))
             row = await cursor.fetchone()
     except Exception as e:
@@ -30,7 +30,7 @@ async def get_last_slot_pull(user_id):
 
 async def get_total_pulls(user_id):
     try:
-        async with aiosqlite.connect('slots.db') as db:
+        async with aiosqlite.connect('pixelslots.db') as db:
             cursor = await db.execute('SELECT count(id) AS count FROM gamba WHERE user_id = ?', (user_id,))
             row = await cursor.fetchone()
     except Exception as e:
@@ -41,7 +41,7 @@ async def get_total_pulls(user_id):
 
 async def get_hot_hour():
     try:
-        async with aiosqlite.connect('slots.db') as db:
+        async with aiosqlite.connect('pixelslots.db') as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute('SELECT * FROM hot_hour')
             row = await cursor.fetchone()
@@ -63,7 +63,7 @@ async def change_hot_hour(hour=None, active=None, odds=None):
     sql += ','.join(['?' for i in changes.keys()]) + ')'
 
     try:
-        async with aiosqlite.connect('slots.db') as db:
+        async with aiosqlite.connect('pixelslots.db') as db:
             await db.execute(sql, list(changes.values()))
             await db.commit()
     except Exception as e:
