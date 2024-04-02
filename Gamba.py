@@ -92,7 +92,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.goose_say, guild=self.server)
         self.bot.tree.add_command(self.check_spins, guild=self.server)
         self.bot.tree.add_command(self.get_stats, guild=self.server)
-        self.check_hot_hour.start()
+        # self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
         # get user last roll from db
