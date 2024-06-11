@@ -14,7 +14,7 @@ class RoleInventory(commands.Cog):
 
         # add the commands to the tree
         self.bot.tree.add_command(self.add_role, guild=self.server)
-        self.bot.tree.add_command(self.remove_role, guild=self.server)
+        self.bot.tree.add_command(self.store_role, guild=self.server)
         self.bot.tree.add_command(self.save_roles, guild=self.server)
 
     def make_embed(self, color, description=None):
@@ -32,7 +32,7 @@ class RoleInventory(commands.Cog):
     async def cog_unload(self):
         """this gets called when the cog is unloaded, remove the commands from the tree"""
         self.bot.tree.remove_command('add_role', guild=self.server)
-        self.bot.tree.remove_command('remove_role', guild=self.server)
+        self.bot.tree.remove_command('store_role', guild=self.server)
         self.bot.tree.remove_command('save_roles', guild=self.server)
 
     @app_commands.command(name='save_roles', description='Take a snapshot of your current roles')
@@ -59,8 +59,8 @@ class RoleInventory(commands.Cog):
         embed = self.make_embed('green', 'Roles saved!')
         await interaction.edit_original_response(embed=embed)
 
-    @app_commands.command(name='remove_role', description='Remove a role and store it')
-    async def remove_role(self, interaction):
+    @app_commands.command(name='store_role', description='Store a role in my inventory')
+    async def store_role(self, interaction):
         """allows a user to remove a role and saves it"""
 
         # defer response for lag reasons
@@ -76,12 +76,12 @@ class RoleInventory(commands.Cog):
 
         # if they have no roles that can be removed just stop here
         if not user_roles:
-            embed = self.make_embed('yellow', 'You have no roles that can be removed.')
+            embed = self.make_embed('yellow', 'You have no roles that can be stored.')
             await interaction.edit_original_response(embed=embed)
             return
 
         # create the fancy dropdown View to send
-        view = RoleView(user_roles, 'remove', 30)
+        view = RoleView(interaction, user_roles, 'remove', 30)
         embed = self.make_embed('blurple', 'Select a role to remove and store in my inventory!\n\nYou\'ll be able to retrieve it again with the /add_role command')
         await interaction.edit_original_response(embed=embed, view=view)
 
@@ -128,7 +128,7 @@ class RoleInventory(commands.Cog):
         # ensure the user has roles saved
         user_id = interaction.user.id
         if not await roledb.check_user(user_id):
-            embed = self.make_embed('red', 'You have not removed any roles yet!')
+            embed = self.make_embed('red', 'You have not stored any roles yet!')
             await interaction.edit_original_response(embed=embed)
             return
 
@@ -149,7 +149,7 @@ class RoleInventory(commands.Cog):
             return
 
         # create and send the fancy dropdown selection View
-        view = RoleView(user_roles, 'add', 30)
+        view = RoleView(interaction, user_roles, 'add', 30)
         embed = self.make_embed('blurple', 'Retreive a role you saved in my inventory!')
         await interaction.edit_original_response(embed=embed, view=view)
 
@@ -162,7 +162,7 @@ class RoleInventory(commands.Cog):
             description = f'''
                 Re-added your role "{selected["name"]}"!
 
-                You can remove roles with the /remove_role command.
+                You can store roles with the /store_role command.
             '''.replace(' '*12, '').strip()
         else:
             # timed out probably

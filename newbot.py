@@ -9,6 +9,7 @@ import asyncio
 from dotdict import dotdict
 from Gamba import Gamba
 from RoleInventory import RoleInventory
+from EmoteMaker import EmoteMaker
 
 def load_config():
     global config
@@ -23,7 +24,7 @@ load_config()
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix='>', intents=intents)
 
-cogs = ['RoleInventory', 'Gamba', 'Trivia']
+cogs = ['RoleInventory', 'Gamba', 'EmoteMaker', 'Trivia']
 
 @bot.event
 async def on_ready():
@@ -60,6 +61,12 @@ async def reload_cog(interaction: discord.Interaction, cog: str):
         await interaction.followup.send(f'Reloaded `{cog}`')
     else:
         await interaction.followup.send(f'Unknown Cog: {cog}')
+
+@reload_cog.autocomplete('cog')
+async def autocomplete_cog(interaction: discord.Interaction, current: str):
+    return [
+        app_commands.Choice(name=cog, value=cog) for cog in cogs if cog.startswith(current)
+    ]
 
 @app_commands.command(name='reload_config', description='Reload the bot config')
 async def reload_config(interaction):
