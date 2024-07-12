@@ -119,6 +119,8 @@ class TimedRole(commands.Cog):
     async def check_timed_role_users(self):
         try:
             expired_users = await db.get_expired_role_users(timestamp())
+            if not expired_users:
+                return
             guild = self.bot.get_guild(self.config.server)
 
             for user in expired_users:
