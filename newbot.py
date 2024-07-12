@@ -22,9 +22,10 @@ env = os.getenv('BOT_ENV')
 load_config()
 
 intents = discord.Intents.default()
+intents.members = True
 bot = commands.Bot(command_prefix='>', intents=intents)
 
-cogs = ['RoleInventory', 'Gamba', 'EmoteMaker']
+cogs = ['RoleInventory', 'Gamba', 'EmoteMaker', 'TimedRole']
 
 @bot.event
 async def on_ready():
