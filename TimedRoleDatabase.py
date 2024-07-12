@@ -106,7 +106,7 @@ async def get_expired_role_users(datestamp: int):
         sql = '''
             SELECT * FROM timed_role_user
             JOIN timed_role ON timed_role.role_id = timed_role_user.role_id
-            WHERE timed_role_user.date_acquired - ? > (timed_role.expiry_days * 86400)
+            WHERE timed_role_user.date_acquired - ? > (timed_role.expire_days * 86400)
         '''
 
         async with aiosqlite.connect('timed_roles.db') as db:
