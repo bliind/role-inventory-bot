@@ -1,7 +1,6 @@
 __pycache__
 __pycache__/*
-db.db
-slots.db
+*.db
 config.json
 config.test.json
 loot_table.test.json
