@@ -27,15 +27,17 @@ bot = commands.Bot(command_prefix='>', intents=intents)
 
 cogs = ['RoleInventory', 'Gamba', 'EmoteMaker', 'TimedRole']
 
+async def setup_hook():
+    for cog in cogs:
+        module = getattr(importlib.import_module(cog), cog)
+        await bot.add_cog(module(bot, config))
+bot.setup_hook = setup_hook
+
 @bot.event
 async def on_ready():
     server = discord.Object(id=config.server)
     bot.tree.add_command(reload_cog, guild=server)
     bot.tree.add_command(reload_config, guild=server)
-
-    for cog in cogs:
-        module = getattr(importlib.import_module(cog), cog)
-        await bot.add_cog(module(bot, config))
 
     await asyncio.sleep(1)
     await bot.tree.sync(guild=server)
