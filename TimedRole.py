@@ -20,7 +20,6 @@ class TimedRole(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('here')
         # add the commands to the tree
         self.bot.tree.add_command(self.create_timed_role, guild=self.server)
         self.bot.tree.add_command(self.remove_timed_role, guild=self.server)
