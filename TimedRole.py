@@ -18,6 +18,8 @@ class TimedRole(commands.Cog):
         self.config = config
         self.server = discord.Object(id=config.server)
 
+    @commands.Cog.listener()
+    async def on_read(self):
         # add the commands to the tree
         self.bot.tree.add_command(self.create_timed_role, guild=self.server)
         self.bot.tree.add_command(self.remove_timed_role, guild=self.server)
@@ -94,7 +96,7 @@ class TimedRole(commands.Cog):
             total_time = role['expire_days'] * 86400 # convert days to seconds
 
             remaining = round((total_time - elapsed) / 86400, 1) # convert back to days
-            message += f'<@&{role["role_id"]}> - {remaining} days'
+            message += f'<@&{role["role_id"]}> - {remaining} days\n'
 
         if message != '':
             await interaction.edit_original_response(embed=discord.Embed(color=discord.Color.blue(), description=message))
