@@ -35,7 +35,7 @@ load_gamba_cfg()
 
 def lose_roll():
     """creates a losing roll"""
-    emotes = ['🍎', '🍋', '💰', '💎', '🍍', '🍀', '🥝', '🌈', '🧁']
+    emotes = gamba_cfg.emotes[:]
     if random.randrange(1,501) == 1:
         emotes.append('✨')
     # pick 2 emotes (might be the same)
@@ -205,12 +205,12 @@ class Gamba(commands.Cog):
             # won
             win_spin = f'{loot_table[award]["spin"]}'
             embed = make_embed('green', f'{win_spin}\n\nYou won the {award} role!')
-            if award == 'PIXEL GOLDEN JEFF':
+            if award == 'GOLDEN JEFF':
                     # rarest reward gets a special message
                     embed.description += ' I didn\'t even know that was possible!!'
-            if award == 'Pixel Rock':
+            if award == 'Rock':
                 # don't show rock public, too common
-                embed.description = f'{win_spin}\n\nOh cool, you won a pixel rock.'
+                embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
                 await interaction.followup.send(embed=embed, ephemeral=True)
             else:
                 # everything else show public
