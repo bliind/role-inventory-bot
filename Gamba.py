@@ -70,10 +70,11 @@ def make_embed(color, description=None):
     color = getattr(discord.Color, color)
     embed = discord.Embed(
         color=color(),
-        title='Pixel Slots!'
+        title='Rock Slots!'
     )
     # embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
-    embed.set_thumbnail(url='https://i.imgur.com/AxPqhnq.jpeg')
+    # embed.set_thumbnail(url='https://i.imgur.com/AxPqhnq.jpeg')
+    embed.set_thumbnail(url='https://i.imgur.com/5l8wp94.jpeg')
     if description:
         embed.description = description
 
@@ -121,13 +122,13 @@ class Gamba(commands.Cog):
 
         return 0
 
-    @app_commands.command(name='get_stats', description='Get your PIXEL SLOTS stats')
+    @app_commands.command(name='get_stats', description='Get your ROCK SLOTS stats')
     async def get_stats(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         total = await slotsdb.get_total_pulls(interaction.user.id)
         stats = await slotsdb.get_stats(interaction.user.id)
 
-        content = f'You spun the PIXEL SLOTS {total} times!\n'
+        content = f'You spun the ROCK SLOTS {total} times!\n'
         for stat in stats:
             if stat['award'] != 'None':
                 plural = 's' if int(stat["count"]) > 1 else ''
@@ -143,11 +144,11 @@ class Gamba(commands.Cog):
             await interaction.channel.send(msg)
             await interaction.delete_original_response()
 
-    @app_commands.command(name='check_spins', description='See how many times you spun the PIXEL SLOTS!')
+    @app_commands.command(name='check_spins', description='See how many times you spun the ROCK SLOTS!')
     async def check_spins(self, interaction):
         await interaction.response.defer(ephemeral=True)
         total = await slotsdb.get_total_pulls(interaction.user.id)
-        await interaction.edit_original_response(content=f'You spun the PIXEL SLOTS {total} times!')
+        await interaction.edit_original_response(content=f'You spun the ROCK SLOTS {total} times!')
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -159,7 +160,7 @@ class Gamba(commands.Cog):
         load_fail_messages()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
-    @app_commands.command(name='reload_slots_cfg', description='Reload the PIXEL SLOTS config')
+    @app_commands.command(name='reload_slots_cfg', description='Reload the ROCK SLOTS config')
     async def reload_slots_cfg(self, interaction):
         load_gamba_cfg()
         await interaction.response.send_message('Reloaded', ephemeral=True)
@@ -272,7 +273,7 @@ class Gamba(commands.Cog):
                         # activate hot hour and send a message to the channel
                         await slotsdb.change_hot_hour(active=1, odds=6)
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
-                        await channel.send(f'# Whoa it\'s getting really **PIXELY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
+                        await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
                         # change avatar to LucaGoose
                         # await self.change_avatar('luca')
                     else:
