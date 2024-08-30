@@ -72,8 +72,6 @@ def make_embed(color, description=None):
         color=color(),
         title='Rock Slots!'
     )
-    # embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
-    # embed.set_thumbnail(url='https://i.imgur.com/AxPqhnq.jpeg')
     embed.set_thumbnail(url='https://i.imgur.com/5l8wp94.jpeg')
     if description:
         embed.description = description
@@ -93,6 +91,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.goose_say, guild=self.server)
         self.bot.tree.add_command(self.check_spins, guild=self.server)
         self.bot.tree.add_command(self.get_stats, guild=self.server)
+        self.bot.tree.add_command(self.hot_hour, guild=self.server)
         # self.check_hot_hour.start()
 
     async def check_cooldown(self, user):
@@ -121,6 +120,21 @@ class Gamba(commands.Cog):
             return (last_roll['datestamp'] + cooldown) - timestamp()
 
         return 0
+
+    @app_commands.command(name='hot_hour', description='Start or stop the hot hour loop')
+    async def hot_hour(self, interaction: discord.Interaction, action: str):
+        await interaction.response.defer(ephemeral=True)
+        if action == 'start':
+            self.check_hot_hour.start()
+            message = 'Started Hot Hour Loop'
+        elif action == 'stop':
+            self.check_hot_hour.stop()
+            message = 'Stopped Hot Hour Loop'
+        else:
+            message = f'Action "{action}" unknown'
+
+        embed = discord.Embed(description=message)
+        await interaction.edit_original_response(embed=embed)
 
     @app_commands.command(name='get_stats', description='Get your ROCK SLOTS stats')
     async def get_stats(self, interaction: discord.Interaction):
@@ -247,6 +261,7 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('goose_say', guild=self.server)
         self.bot.tree.remove_command('check_spins', guild=self.server)
         self.bot.tree.remove_command('get_stats', guild=self.server)
+        self.bot.tree.remove_command('hot_hour', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):
