@@ -42,12 +42,17 @@
     "Prismatic Rock": {
         "chance": 25000,
         "role": 1193671665364762687,
-        "spin": "🌈 | 🌈 | 🌈"
+        "spin": "🎨 | 🎨 | 🎨"
     },
     "Symbiote Jeff": {
         "chance": 50000,
         "role": 1273792473562353806,
         "spin": "🦈 | 🦈 | 🦈"
+    },
+    "Rainbow Rock": {
+        "chance": 75000,
+        "role": 1279496509955637331,
+        "spin":"🌈 | 🌈 | 🌈"
     },
     "GOLDEN JEFF": {
         "chance": 500000,
