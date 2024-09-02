@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 import slotsdb
 from dotdict import dotdict
+from FrenzyRoleView import FrenzyRoleView
 
 # load the loot table according to the environment
 def load_loot_table():
@@ -92,7 +93,16 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.check_spins, guild=self.server)
         self.bot.tree.add_command(self.get_stats, guild=self.server)
         self.bot.tree.add_command(self.hot_hour, guild=self.server)
+        self.bot.tree.add_command(self.frenzy_role_message, guild=self.server)
         # self.check_hot_hour.start()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        try:
+            view = FrenzyRoleView(frenzy_role_id=gamba_cfg.frenzy_alert_role, timeout=None)
+            self.bot.add_view(view)
+        except Exception as e:
+            print('Initializing view failed:', e)
 
     async def check_cooldown(self, user):
         # get user last roll from db
@@ -240,6 +250,23 @@ class Gamba(commands.Cog):
         # save the timestamp for the cooldown
         await slotsdb.save_slot_pull(interaction.user.id, timestamp(), award)
 
+    @app_commands.command(name='frenzy_role_message', description='Send the frenzy role message')
+    async def frenzy_role_message(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.delete_original_response()
+
+        view = FrenzyRoleView(frenzy_role_id=gamba_cfg.frenzy_alert_role, timeout=None)
+        embed = discord.Embed(
+            color=discord.Color.teal(),
+            title='Frenzy Alert Role',
+            description='''# Get pinged every time there's a frenzy (reduced cooldowns for mining)
+
+            ### _Hit the button again to remove the role and stop getting pinged_
+            '''.replace(' '*12, '').strip()
+        )
+        message = await interaction.channel.send(embed=embed, view=view)
+        await view.wait()
+
     async def change_avatar(self, avatar):
         image_file = None
         if avatar == 'base':
@@ -262,6 +289,7 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('check_spins', guild=self.server)
         self.bot.tree.remove_command('get_stats', guild=self.server)
         self.bot.tree.remove_command('hot_hour', guild=self.server)
+        self.bot.tree.remove_command('frenzy_role_message', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):
