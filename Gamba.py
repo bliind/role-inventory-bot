@@ -114,7 +114,7 @@ class Gamba(commands.Cog):
         # lower cooldown for boosters
         cooldown = gamba_cfg.cooldown
         for role in user.roles:
-            if role.name == '[Booster]':
+            if role.id == gamba_cfg.booster_role_id:
                 cooldown = gamba_cfg.booster_cooldown
                 break
 
