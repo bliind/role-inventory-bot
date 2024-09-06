@@ -1,7 +1,7 @@
 {
-    "cooldown": 90,
-    "booster_cooldown": 60,
-    "hot_hour_cooldown": 45,
+    "cooldown": 50,
+    "booster_cooldown": 40,
+    "hot_hour_cooldown": 30,
     "frenzy_alert_role": 1279859147940298754,
     "slots_channel": 1193687544408326164,
     "booster_role_id": 978563592561491999,
