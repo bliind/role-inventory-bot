@@ -223,8 +223,13 @@ class Gamba(commands.Cog):
             fail_msgs = fail_messages[:]
             # if interaction.user.id != 78488223046701056:
             #     fail_msgs.append("Sigphale is a better miner than you")
+            fail_msg = random.choice(fail_msgs)
+            embed = make_embed('red', f'{lose_roll()}')
+            if fail_msg.startswith('image:'):
+                embed.set_image(url=fail_msg.replace('image:', ''))
+            else:
+                embed.description += f'\n\n{fail_msg}'
 
-            embed = make_embed('red', f'{lose_roll()}\n\n{random.choice(fail_msgs)}')
             await interaction.followup.send(embed=embed, ephemeral=True)
         else:
             # won
