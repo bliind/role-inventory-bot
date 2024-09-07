@@ -306,7 +306,7 @@ class Gamba(commands.Cog):
                     hot_hour['active'] = 0
 
                     # change avatar to BaseGoose
-                    # await self.change_avatar('base')
+                    await self.change_avatar('base')
 
             if hot_hour['active'] == 0:
                 # if we're not in a checked hour and close to the start of the hour
@@ -318,7 +318,7 @@ class Gamba(commands.Cog):
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
                         await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
                         # change avatar to LucaGoose
-                        # await self.change_avatar('luca')
+                        await self.change_avatar('luca')
                     else:
                         await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 
