@@ -53,6 +53,27 @@ async def get_spin_counts():
         print(e)
         return False
 
+async def get_rewards_counts():
+    try:
+        sql = 'SELECT COUNT(award) AS count, award FROM gamba GROUP BY award ORDER BY count DESC'
+
+        async with aiosqlite.connect(dbfile) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(sql)
+            rows = await cursor.fetchall()
+            await cursor.close()
+
+        out = []
+        for row in rows:
+            out.append({
+                "award": row['award'],
+                "count": row['count'],
+            })
+        return out
+    except Exception as e:
+        print(e)
+        return False
+
 def check_user_spins(user_id: int):
     rolls = asyncio.run(get_user_spins(user_id))
     last = None
@@ -68,6 +89,11 @@ def check_total_spins():
     for roll in rolls:
         print(f'{roll["user_id"]} - {roll["total_spins"]}')
 
+def check_reward_totals():
+    awards = asyncio.run(get_rewards_counts())
+    for award in awards:
+        print(f'{award["award"]} - {award["count"]}')
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         raise SystemError('error: provide action')
@@ -79,3 +105,6 @@ if __name__ == '__main__':
 
     elif sys.argv[1] == 'totals':
         check_total_spins()
+
+    elif sys.argv[1] == 'rewards':
+        check_reward_totals()
