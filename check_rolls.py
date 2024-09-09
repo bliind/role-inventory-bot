@@ -83,6 +83,7 @@ def check_user_spins(user_id: int):
         else:
             print(humantime(roll['datestamp']))
         last = roll['datestamp']
+    print(f'Total: {len(rolls)}')
 
 def check_total_spins():
     rolls = asyncio.run(get_spin_counts())
