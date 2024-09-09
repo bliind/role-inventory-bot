@@ -274,10 +274,10 @@ class Gamba(commands.Cog):
 
     async def change_avatar(self, avatar):
         image_file = None
-        if avatar == 'base':
-            image_file = 'BaseGoose.png'
-        if avatar == 'luca':
-            image_file = 'LucaGoose.png'
+        if avatar == 'normal':
+            image_file = gamba_cfg.normal_avatar
+        if avatar == 'frenzy':
+            image_file = gamba_cfg.frenzy_avatar
         if image_file:
             with open(image_file, 'rb') as image:
                 await self.bot.user.edit(avatar=image.read())
@@ -310,8 +310,8 @@ class Gamba(commands.Cog):
                     await slotsdb.change_hot_hour(active=0)
                     hot_hour['active'] = 0
 
-                    # change avatar to BaseGoose
-                    await self.change_avatar('base')
+                    # change avatar to non-frenzy avatar
+                    await self.change_avatar('normal')
 
             if hot_hour['active'] == 0:
                 # if we're not in a checked hour and close to the start of the hour
@@ -322,8 +322,8 @@ class Gamba(commands.Cog):
                         await slotsdb.change_hot_hour(active=1, odds=6)
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
                         await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
-                        # change avatar to LucaGoose
-                        await self.change_avatar('luca')
+                        # change avatar to Frenzy Avatar
+                        await self.change_avatar('frenzy')
                     else:
                         await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 
