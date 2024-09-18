@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 import slotsdb
 from dotdict import dotdict
+from FrenzyRoleView import FrenzyRoleView
 
 # load the loot table according to the environment
 def load_loot_table():
@@ -35,7 +36,7 @@ load_gamba_cfg()
 
 def lose_roll():
     """creates a losing roll"""
-    emotes = ['🍎', '🍋', '💰', '💎', '🍍', '🍀', '🥝', '🌈', '🧁']
+    emotes = gamba_cfg.emotes[:]
     if random.randrange(1,501) == 1:
         emotes.append('✨')
     # pick 2 emotes (might be the same)
@@ -70,10 +71,9 @@ def make_embed(color, description=None):
     color = getattr(discord.Color, color)
     embed = discord.Embed(
         color=color(),
-        title='Pixel Slots!'
+        title='Rock Slots!'
     )
-    # embed.set_thumbnail(url='https://media.discordapp.net/attachments/772018609610031104/1193726070474678343/image.png')
-    embed.set_thumbnail(url='https://i.imgur.com/AxPqhnq.jpeg')
+    embed.set_thumbnail(url='https://i.imgur.com/5l8wp94.jpeg')
     if description:
         embed.description = description
 
@@ -92,7 +92,17 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.goose_say, guild=self.server)
         self.bot.tree.add_command(self.check_spins, guild=self.server)
         self.bot.tree.add_command(self.get_stats, guild=self.server)
+        self.bot.tree.add_command(self.hot_hour, guild=self.server)
+        self.bot.tree.add_command(self.frenzy_role_message, guild=self.server)
         # self.check_hot_hour.start()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        try:
+            view = FrenzyRoleView(frenzy_role_id=gamba_cfg.frenzy_alert_role, timeout=None)
+            self.bot.add_view(view)
+        except Exception as e:
+            print('Initializing view failed:', e)
 
     async def check_cooldown(self, user):
         # get user last roll from db
@@ -104,7 +114,7 @@ class Gamba(commands.Cog):
         # lower cooldown for boosters
         cooldown = gamba_cfg.cooldown
         for role in user.roles:
-            if role.name == '[Booster]':
+            if role.id == gamba_cfg.booster_role_id:
                 cooldown = gamba_cfg.booster_cooldown
                 break
 
@@ -121,13 +131,28 @@ class Gamba(commands.Cog):
 
         return 0
 
-    @app_commands.command(name='get_stats', description='Get your PIXEL SLOTS stats')
+    @app_commands.command(name='hot_hour', description='Start or stop the hot hour loop')
+    async def hot_hour(self, interaction: discord.Interaction, action: str):
+        await interaction.response.defer(ephemeral=True)
+        if action == 'start':
+            self.check_hot_hour.start()
+            message = 'Started Hot Hour Loop'
+        elif action == 'stop':
+            self.check_hot_hour.stop()
+            message = 'Stopped Hot Hour Loop'
+        else:
+            message = f'Action "{action}" unknown'
+
+        embed = discord.Embed(description=message)
+        await interaction.edit_original_response(embed=embed)
+
+    @app_commands.command(name='get_stats', description='Get your ROCK SLOTS stats')
     async def get_stats(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         total = await slotsdb.get_total_pulls(interaction.user.id)
         stats = await slotsdb.get_stats(interaction.user.id)
 
-        content = f'You spun the PIXEL SLOTS {total} times!\n'
+        content = f'You spun the ROCK SLOTS {total} times!\n'
         for stat in stats:
             if stat['award'] != 'None':
                 plural = 's' if int(stat["count"]) > 1 else ''
@@ -143,11 +168,11 @@ class Gamba(commands.Cog):
             await interaction.channel.send(msg)
             await interaction.delete_original_response()
 
-    @app_commands.command(name='check_spins', description='See how many times you spun the PIXEL SLOTS!')
+    @app_commands.command(name='check_spins', description='See how many times you spun the ROCK SLOTS!')
     async def check_spins(self, interaction):
         await interaction.response.defer(ephemeral=True)
         total = await slotsdb.get_total_pulls(interaction.user.id)
-        await interaction.edit_original_response(content=f'You spun the PIXEL SLOTS {total} times!')
+        await interaction.edit_original_response(content=f'You spun the ROCK SLOTS {total} times!')
 
     @app_commands.command(name='reload_loot_table', description='Re-read the loot table')
     async def reload_loot_table(self, interaction):
@@ -159,7 +184,7 @@ class Gamba(commands.Cog):
         load_fail_messages()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
-    @app_commands.command(name='reload_slots_cfg', description='Reload the PIXEL SLOTS config')
+    @app_commands.command(name='reload_slots_cfg', description='Reload the ROCK SLOTS config')
     async def reload_slots_cfg(self, interaction):
         load_gamba_cfg()
         await interaction.response.send_message('Reloaded', ephemeral=True)
@@ -198,19 +223,24 @@ class Gamba(commands.Cog):
             fail_msgs = fail_messages[:]
             # if interaction.user.id != 78488223046701056:
             #     fail_msgs.append("Sigphale is a better miner than you")
+            fail_msg = random.choice(fail_msgs)
+            embed = make_embed('red', f'{lose_roll()}')
+            if fail_msg.startswith('image:'):
+                embed.set_image(url=fail_msg.replace('image:', ''))
+            else:
+                embed.description += f'\n\n{fail_msg}'
 
-            embed = make_embed('red', f'{lose_roll()}\n\n{random.choice(fail_msgs)}')
             await interaction.followup.send(embed=embed, ephemeral=True)
         else:
             # won
             win_spin = f'{loot_table[award]["spin"]}'
             embed = make_embed('green', f'{win_spin}\n\nYou won the {award} role!')
-            if award == 'PIXEL GOLDEN JEFF':
+            if award == 'GOLDEN JEFF':
                     # rarest reward gets a special message
                     embed.description += ' I didn\'t even know that was possible!!'
-            if award == 'Pixel Rock':
+            if award == 'Rock':
                 # don't show rock public, too common
-                embed.description = f'{win_spin}\n\nOh cool, you won a pixel rock.'
+                embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
                 await interaction.followup.send(embed=embed, ephemeral=True)
             else:
                 # everything else show public
@@ -225,12 +255,29 @@ class Gamba(commands.Cog):
         # save the timestamp for the cooldown
         await slotsdb.save_slot_pull(interaction.user.id, timestamp(), award)
 
+    @app_commands.command(name='frenzy_role_message', description='Send the frenzy role message')
+    async def frenzy_role_message(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.delete_original_response()
+
+        view = FrenzyRoleView(frenzy_role_id=gamba_cfg.frenzy_alert_role, timeout=None)
+        embed = discord.Embed(
+            color=discord.Color.teal(),
+            title='Frenzy Alert Role',
+            description='''# Get pinged every time there's a frenzy (reduced cooldowns for mining)
+
+            ### _Hit the button again to remove the role and stop getting pinged_
+            '''.replace(' '*12, '').strip()
+        )
+        message = await interaction.channel.send(embed=embed, view=view)
+        await view.wait()
+
     async def change_avatar(self, avatar):
         image_file = None
-        if avatar == 'base':
-            image_file = 'BaseGoose.png'
-        if avatar == 'luca':
-            image_file = 'LucaGoose.png'
+        if avatar == 'normal':
+            image_file = gamba_cfg.normal_avatar
+        if avatar == 'frenzy':
+            image_file = gamba_cfg.frenzy_avatar
         if image_file:
             with open(image_file, 'rb') as image:
                 await self.bot.user.edit(avatar=image.read())
@@ -246,6 +293,8 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('goose_say', guild=self.server)
         self.bot.tree.remove_command('check_spins', guild=self.server)
         self.bot.tree.remove_command('get_stats', guild=self.server)
+        self.bot.tree.remove_command('hot_hour', guild=self.server)
+        self.bot.tree.remove_command('frenzy_role_message', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):
@@ -261,8 +310,8 @@ class Gamba(commands.Cog):
                     await slotsdb.change_hot_hour(active=0)
                     hot_hour['active'] = 0
 
-                    # change avatar to BaseGoose
-                    # await self.change_avatar('base')
+                    # change avatar to non-frenzy avatar
+                    await self.change_avatar('normal')
 
             if hot_hour['active'] == 0:
                 # if we're not in a checked hour and close to the start of the hour
@@ -272,9 +321,9 @@ class Gamba(commands.Cog):
                         # activate hot hour and send a message to the channel
                         await slotsdb.change_hot_hour(active=1, odds=6)
                         channel = self.bot.get_channel(gamba_cfg.slots_channel)
-                        await channel.send(f'# Whoa it\'s getting really **PIXELY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
-                        # change avatar to LucaGoose
-                        # await self.change_avatar('luca')
+                        await channel.send(f'# Whoa it\'s getting really **ROCKY** in here\n\n<@&{gamba_cfg.frenzy_alert_role}>')
+                        # change avatar to Frenzy Avatar
+                        await self.change_avatar('frenzy')
                     else:
                         await slotsdb.change_hot_hour(odds=hot_hour['odds'] - 1)
 

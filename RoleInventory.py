@@ -4,6 +4,7 @@ from discord.ext import commands
 from dotdict import dotdict
 from views import RoleView
 import roledb
+from SpecialXPView import SpecialXPView
 
 class RoleInventory(commands.Cog):
     def __init__(self, bot, config):
@@ -16,6 +17,10 @@ class RoleInventory(commands.Cog):
         self.bot.tree.add_command(self.add_role, guild=self.server)
         self.bot.tree.add_command(self.store_role, guild=self.server)
         self.bot.tree.add_command(self.save_roles, guild=self.server)
+        self.bot.tree.add_command(self.special_xp_message, guild=self.server)
+        self.bot.tree.add_command(self.add_sr_role, guild=self.server)
+        self.bot.tree.add_command(self.remove_sr_role, guild=self.server)
+        self.bot.tree.add_command(self.set_no_xp_role, guild=self.server)
 
     def make_embed(self, color, description=None):
         color = getattr(discord.Color, color)
@@ -34,6 +39,18 @@ class RoleInventory(commands.Cog):
         self.bot.tree.remove_command('add_role', guild=self.server)
         self.bot.tree.remove_command('store_role', guild=self.server)
         self.bot.tree.remove_command('save_roles', guild=self.server)
+        self.bot.tree.remove_command('special_xp_message', guild=self.server)
+        self.bot.tree.remove_command('add_sr_role', guild=self.server)
+        self.bot.tree.remove_command('remove_sr_role', guild=self.server)
+        self.bot.tree.remove_command('set_no_xp_role', guild=self.server)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        try:
+            view = SpecialXPView(timeout=None)
+            self.bot.add_view(view)
+        except Exception as e:
+            print('Initializing view failed:', e)
 
     @app_commands.command(name='save_roles', description='Take a snapshot of your current roles')
     async def save_roles(self, interaction):
@@ -173,3 +190,39 @@ class RoleInventory(commands.Cog):
             view=None,
             embed=self.make_embed('green', description)
         )
+
+    @app_commands.command(name='special_xp_message', description='Send the special XP message')
+    async def special_xp_message(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.delete_original_response()
+
+        view = SpecialXPView(timeout=None)
+        embed = discord.Embed(
+            color=discord.Color.yellow(),
+            description='''
+                Here you can choose to remove your SR roles. The roles cannot be added back on manually. You will continue to gain XP and will acquire the next SR role automatically.
+
+                You can also choose to completely disable XP gain with the No XP role. Hitting the button again will remove the No XP role.
+            '''
+        )
+        message = await interaction.channel.send(embed=embed, view=view)
+        await view.wait()
+
+    @app_commands.command(name='add_sr_role', description='Add a role to the SR role remover')
+    async def add_sr_role(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.add_sr_role(role.name, role.id)
+        await interaction.edit_original_response(embed=self.make_embed('green', f'<@&{role.id}> added!'))
+
+    @app_commands.command(name='remove_sr_role', description='Remove a role from the SR role remover')
+    async def remove_sr_role(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.add_sr_role(role.name, role.id)
+        await interaction.edit_original_response(embed=self.make_embed('red', f'<@&{role.id}> removed!'))
+
+    @app_commands.command(name='set_no_xp_role', description='Set the No XP role')
+    async def set_no_xp_role(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.set_no_xp_role(role.id)
+        embed = self.make_embed('red', f'No XP role set as: <@&{role.id}>!')
+        await interaction.edit_original_response(embed=embed)

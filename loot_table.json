@@ -1,51 +1,61 @@
 {
-    "Pixel Rock": {
+    "Rock": {
         "chance": 10,
         "role": 1091464809150689372,
         "spin": "🍎 | 🍎 | 🍎"
     },
-    "Pixel Gold Rock": {
+    "Gold Rock": {
         "chance": 100,
         "role": 1091751874341900449,
         "spin": "🍋 | 🍋 | 🍋"
     },
-    "April Fools 2024": {
-        "chance": 25,
-        "role": 1224203377941024804,
-        "spin": "🧁 | 🧁 | 🧁"
-    },
-    "Pixel Coal": {
+    "Coal": {
         "chance": 300,
         "role": 1193686449137143888,
         "spin": "💰 | 💰 | 💰"
     },
-    "Pixel Diamond Rock": {
+    "Diamond Rock": {
         "chance": 1000,
         "role": 1091785294812029110,
         "spin": "💎 | 💎 | 💎"
     },
-    "Pixel Vibranium": {
+    "Vibranium": {
         "chance": 2500,
         "role": 1194006746893660264,
         "spin": "🍍 | 🍍 | 🍍"
     },
-    "Pixel Flawless Rock": {
+    "Flawless Rock": {
         "chance": 5000,
         "role": 1091878327628865556,
         "spin": "🍀 | 🍀 | 🍀"
     },
-    "Pixel Platinum Vibranium": {
+    "Symbiote Rock": {
+        "chance": 7500,
+        "role": 1278771944975634482,
+        "spin": "⚫ | ⚫ | ⚫"
+    },
+    "Platinum Vibranium": {
         "chance": 10000,
         "role": 1195159090171756594,
         "spin": "🥝 | 🥝 | 🥝"
     },
-    "Pixel Prismatic Rock": {
+    "Prismatic Rock": {
         "chance": 25000,
         "role": 1193671665364762687,
-        "spin": "🌈 | 🌈 | 🌈"
+        "spin": "🎨 | 🎨 | 🎨"
+    },
+    "Symbiote Jeff": {
+        "chance": 50000,
+        "role": 1273792473562353806,
+        "spin": "🦈 | 🦈 | 🦈"
+    },
+    "Rainbow Rock": {
+        "chance": 50000,
+        "role": 1279496509955637331,
+        "spin":"🌈 | 🌈 | 🌈"
     },
     "GOLDEN JEFF": {
-        "chance": 150000,
+        "chance": 250000,
         "role": 1193672946426859560,
         "spin": "✨ | ✨ | ✨"
     }
