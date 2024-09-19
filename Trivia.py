@@ -107,7 +107,7 @@ class Trivia(commands.Cog):
 
         # start loop
         self.last_question_ts = timestamp()
-        # self.trivia_loop.start()
+        # manually loop every second because @loop was NOT reliable
         while self.trivia_started:
             await self.trivia_loop()
             await asyncio.sleep(1)
@@ -122,41 +122,41 @@ class Trivia(commands.Cog):
 
     @app_commands.command(name='stop_trivia', description='Stop the currently running Trivia')
     async def stop_trivia(self, interaction: discord.Interaction):
+        # reset all variables no matter what so stop can be a clean slate
+        self.trivia_data = {}
+        self.trivia_started = False
+        self.trivia_channel = None
+        self.current_question = None
+        global scores
+        scores = {}
+
         if not self.trivia_started:
             # if not started, do nothing
             embed = discord.Embed(color=discord.Color.yellow(), description='Trivia is not started')
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
-        # defer response
-        await interaction.response.defer(thinking=True, ephemeral=False)
-
         string = f'Stopping {self.trivia_data["name"]}'
-        self.trivia_loop.cancel()
-        self.trivia_data = {}
-        self.trivia_started = False
-        self.trivia_channel = None
-        self.current_question = None
-
         embed = discord.Embed(color=discord.Color.yellow(), description=string)
-        await interaction.edit_original_response(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
     async def send_scores(self, final=False):
         if len(list(scores.items())) == 0:
             return
 
-        msg = f'## Current Scores (Top {scores_chunk})\n\n'
-        if final:
-            msg = '## Final Scores\n\n'
-
         # sort by most points
         sorted_scores = sorted(scores.items(), key=lambda x:x[1], reverse=True)
 
+        msg = f'## Current Scores\n\n'
         # show only top 25 normally
         display_scores = sorted_scores
         count = len(sorted_scores)
         if count > scores_chunk:
             display_scores = sorted_scores[0:scores_chunk]
+            msg = f'## Current Scores (Top {scores_chunk})\n\n'
+
+        if final:
+            msg = '## Final Scores\n\n'
 
         # loop through the scores
         for i, score in enumerate(display_scores):
@@ -177,7 +177,6 @@ class Trivia(commands.Cog):
             channel = self.bot.get_channel(self.trivia_channel)
             await channel.send(embed=score_embed)
 
-    @tasks.loop(seconds=1)
     async def trivia_loop(self):
         # check 10 seconds passed from last question
         if timestamp() - self.last_question_ts < round_timer:
@@ -211,7 +210,8 @@ class Trivia(commands.Cog):
                 self.trivia_started = False
                 self.trivia_channel = None
                 self.current_question = None
-                self.trivia_loop.cancel()
+                global scores
+                scores = {}
 
             # do the next question on the next loop
             self.current_question = None
