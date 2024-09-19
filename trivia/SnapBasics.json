@@ -1,0 +1,32 @@
+{
+    "name": "SNAP 101",
+    "author": "./swn",
+    "icon": "https://i.imgur.com/Q0yeJOI.jpeg",
+    "questions": [
+        {
+            "question": "Decks are created with how many cards?",
+            "answer": "12",
+            "wrong_answers": ["16", "10", "20"]
+        },
+        {
+            "question": "How many turns are there in a normal game?",
+            "answer": "6",
+            "wrong_answers": ["5", "8", "10"]
+        },
+        {
+            "question": "What is the maximum numbers of cards you can have in your hand?",
+            "answer": "7",
+            "wrong_answers": ["5", "6", "8"]
+        },
+        {
+            "question": "Who does the following ability belong to?\n**Ongoing:** If your side of this location is full, +4 Power.",
+            "answer": "Ant-Man",
+            "wrong_answers": ["Wasp", "Rocket Raccoon", "Iron Man"]
+        },
+        {
+            "question": "Which location has the following ability?\nWhen a card moves here, give it +2 Power.",
+            "answer": "K'un-Lun",
+            "wrong_answers": ["Dream Dimension", "New York", "Muir Island"]
+        }
+    ]
+}

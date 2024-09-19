@@ -1,10 +1,10 @@
 {
     "name": "Marvel Comics Quiz",
-    "author": "./swn",
-    "icon": "https://i.imgur.com/XukjaOE.png",
+    "author": "ChatGPT",
+    "icon": "https://i.imgur.com/fXmv3af.jpeg",
     "questions": [
         {
-            "question": "What metal is Wolverine's claws made of?",
+            "question": "What metal coats Wolverine's skeleton?",
             "answer": "Adamantium",
             "wrong_answers": ["Vibranium", "Titanium", "Steel"]
         },
@@ -21,7 +21,7 @@
         {
             "question": "What is the name of Tony Stark's AI assistant?",
             "answer": "JARVIS",
-            "wrong_answers": ["FRIDAY", "ALFRED", "ULTRON"]
+            "wrong_answers": ["THURSDAY", "ALFRED", "ULTRON"]
         },
         {
             "question": "Who is Spider-Man's arch-enemy?",
