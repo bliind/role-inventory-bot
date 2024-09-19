@@ -25,7 +25,7 @@ intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='>', intents=intents)
 
-cogs = ['RoleInventory', 'Gamba', 'EmoteMaker', 'TimedRole']
+cogs = ['RoleInventory', 'Gamba', 'EmoteMaker', 'TimedRole', 'Trivia']
 
 async def setup_hook():
     for cog in cogs:

@@ -1,0 +1,57 @@
+{
+    "name": "Marvel Comics Quiz",
+    "author": "ChatGPT",
+    "icon": "https://i.imgur.com/fXmv3af.jpeg",
+    "questions": [
+        {
+            "question": "What metal coats Wolverine's skeleton?",
+            "answer": "Adamantium",
+            "wrong_answers": ["Vibranium", "Titanium", "Steel"]
+        },
+        {
+            "question": "Who is the Norse God of Thunder?",
+            "answer": "Thor",
+            "wrong_answers": ["Loki", "Odin", "Freyr"]
+        },
+        {
+            "question": "What is Captain America's shield made of?",
+            "answer": "Vibranium",
+            "wrong_answers": ["Adamantium", "Iron", "Uru"]
+        },
+        {
+            "question": "What is the name of Tony Stark's AI assistant?",
+            "answer": "JARVIS",
+            "wrong_answers": ["THURSDAY", "ALFRED", "ULTRON"]
+        },
+        {
+            "question": "Who is Spider-Man's arch-enemy?",
+            "answer": "Green Goblin",
+            "wrong_answers": ["Venom", "Doctor Octopus", "Sandman"]
+        },
+        {
+            "question": "Who is the ruler of Wakanda?",
+            "answer": "T'Challa",
+            "wrong_answers": ["M'Baku", "Killmonger", "Okoye"]
+        },
+        {
+            "question": "What is the name of Thor's hammer?",
+            "answer": "Mjolnir",
+            "wrong_answers": ["Stormbreaker", "Gungnir", "Aegis"]
+        },
+        {
+            "question": "Which Infinity Stone is hidden on Vormir?",
+            "answer": "Soul",
+            "wrong_answers": ["Reality", "Power", "Mind"]
+        },
+        {
+            "question": "What race is Thanos?",
+            "answer": "Titan",
+            "wrong_answers": ["Kree", "Skrull", "Eternal"]
+        },
+        {
+            "question": "Who leads the X-Men?",
+            "answer": "Professor X",
+            "wrong_answers": ["Magneto", "Cyclops", "Wolverine"]
+        }
+    ]
+}
