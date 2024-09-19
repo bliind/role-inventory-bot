@@ -182,6 +182,9 @@ class Trivia(commands.Cog):
         if timestamp() - self.last_question_ts < round_timer:
             return
 
+        print(f'last run: {self.last_question_ts}')
+        print(f'this run: {timestamp()}')
+
         # get channel for sending messages
         channel = self.bot.get_channel(self.trivia_channel)
 
