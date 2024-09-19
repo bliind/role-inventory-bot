@@ -26,6 +26,8 @@ def timestamp():
     return int(round(now.timestamp()))
 
 scores = {}
+scores_chunk = 25
+round_timer = 10
 
 class Trivia(commands.Cog):
     def __init__(self, bot, config):
@@ -99,7 +101,7 @@ class Trivia(commands.Cog):
         string = f'# {self.trivia_data["name"]}\n'
         string += f'## by {self.trivia_data["author"]}\n\n'
         string += f'### {len(self.trivia_questions)} questions total\n\n'
-        string += f'### __Starts in 10 seconds__'
+        string += f'### __Starts in {round_timer} seconds__'
         embed = self.make_embed('blurple', description=string, title='Starting Quiz')
         await interaction.edit_original_response(embed=embed)
 
@@ -143,19 +145,18 @@ class Trivia(commands.Cog):
         if len(list(scores.items())) == 0:
             return
 
-        msg = '## Current Scores (Top 25)\n\n'
+        msg = f'## Current Scores (Top {scores_chunk})\n\n'
         if final:
             msg = '## Final Scores\n\n'
 
         # sort by most points
         sorted_scores = sorted(scores.items(), key=lambda x:x[1], reverse=True)
 
-        # todo: need to split up and send multiple pages if there's too many
-        # how many is too many? 15-25 per page good?
+        # show only top 25 normally
         display_scores = sorted_scores
         count = len(sorted_scores)
-        if count > 25:
-            display_scores = sorted_scores[0:25]
+        if count > scores_chunk:
+            display_scores = sorted_scores[0:scores_chunk]
 
         # loop through the scores
         for i, score in enumerate(display_scores):
@@ -166,19 +167,20 @@ class Trivia(commands.Cog):
         await channel.send(embed=score_embed)
 
         # send the rest of the scores for final
-        if final:
-            for chunk in range(25, count, 25):
-                description = '## Final Scores Continued'
-                for i, score in enumerate(sorted_scores[chunk:chunk+25]):
-                    description += f'{i+chunk+1}) <@{score[0]}> - {score[1]}\n'
-                score_embed = self.make_embed('teal', description=description)
-                channel = self.bot.get_channel(self.trivia_channel)
-                await channel.send(embed=score_embed)
+        if not final:
+            return
+        for chunk in range(scores_chunk, count, scores_chunk):
+            description = '## Final Scores Continued'
+            for i, score in enumerate(sorted_scores[chunk:chunk+scores_chunk]):
+                description += f'{i+chunk+1}) <@{score[0]}> - {score[1]}\n'
+            score_embed = self.make_embed('teal', description=description)
+            channel = self.bot.get_channel(self.trivia_channel)
+            await channel.send(embed=score_embed)
 
     @tasks.loop(seconds=1)
     async def trivia_loop(self):
         # check 10 seconds passed from last question
-        if timestamp() - self.last_question_ts < 10:
+        if timestamp() - self.last_question_ts < round_timer:
             return
 
         # get channel for sending messages
@@ -188,7 +190,7 @@ class Trivia(commands.Cog):
             # show results for last question
             last_q = '## Time\'s up!\n\n'
             last_q += f'## The correct answer was: **{self.current_question["answer"]}**\n\n'
-            last_q += '### Next question in 10 seconds..'
+            last_q += f'### Next question in {round_timer} seconds..'
             embed = self.make_embed('green', description=last_q)
             await channel.send(embed=embed)
             self.last_question_ts = timestamp()
@@ -239,7 +241,7 @@ class Trivia(commands.Cog):
         # create the view
         letters = ['A','B','C','D']
         correct = letters[answers.index(self.current_question['answer'])]
-        view = TriviaView(timeout=10, scores=scores, correct=correct, ts=timestamp())
+        view = TriviaView(timeout=round_timer, scores=scores, correct=correct, ts=timestamp())
         question_msg = await channel.send(embed=embed, view=view)
         self.last_question_ts = timestamp()
 
