@@ -25,7 +25,34 @@ def timestamp():
     now = datetime.datetime.now()
     return int(round(now.timestamp()))
 
-scores = {}
+scores = {
+    "156631229591060480": 0,
+    "126491358239129600": 0,
+    "716390085896962058": 0,
+    "268547439714238465": 0,
+    "177561042983976967": 0,
+    "563212146570166299": 0,
+    "335977175150886912": 0,
+    "1131010306286559382": 0,
+    "583433827305914391": 0,
+    "224530867341623298": 0,
+    "727670196742914128": 0,
+    "1099168660871983166": 0,
+    "366635388573319169": 0,
+    "862206829719584798": 0,
+    "1033396550702989402": 0,
+    "597927100015706123": 0,
+    "168061914675412992": 0,
+    "157632781608812544": 0,
+    "168083124457046016": 0,
+    "168085888276889602": 0,
+    "188827700012515329": 0,
+    "212587082546151424": 0,
+    "333342913167884288": 0,
+    "460728347329167371": 0,
+    "270300704394969090": 0,
+}
+# scores = {}
 
 class Trivia(commands.Cog):
     def __init__(self, bot, config):
@@ -62,9 +89,8 @@ class Trivia(commands.Cog):
             description=description
         )
 
-        # make the embed bigger?
-        embed.set_image(url='https://cdn.discordapp.com/attachments/1139650618907185262/1195909270282186762/transparent_bar.png')
-        # embed.set_image(url='https://cdn.discordapp.com/attachments/1139650618907185262/1195896867381317672/transparent_bar.png')
+        # make the embed bigger with 512x4 mostly transparent bar
+        embed.set_image(url='https://i.imgur.com/OLsuQKm.png')
 
         if 'icon' in self.trivia_data:
             # if the quiz has an icon, use it
@@ -97,15 +123,19 @@ class Trivia(commands.Cog):
             random.shuffle(self.trivia_questions)
 
         # print info about chosen quiz
-        string = f'## {self.trivia_data["name"]}\n'
-        string += f'by {self.trivia_data["author"]}\n\n'
-        string += f'{len(self.trivia_questions)} questions total\n\n'
-        string += f'Starts in 10 seconds..'
+        string = f'# {self.trivia_data["name"]}\n'
+        string += f'## by {self.trivia_data["author"]}\n\n'
+        string += f'### {len(self.trivia_questions)} questions total\n\n'
+        string += f'### __Starts in 10 seconds__'
         embed = self.make_embed('blurple', description=string, title='Starting Quiz')
         await interaction.edit_original_response(embed=embed)
 
         # start loop
-        self.trivia_loop.start()
+        self.last_question_ts = timestamp()
+        # self.trivia_loop.start()
+        while self.trivia_started:
+            await self.trivia_loop()
+            await asyncio.sleep(1)
 
     @start_trivia.autocomplete('quiz_name')
     async def autocomplete_quiz_name(self, interaction: discord.Interaction, current: str):
@@ -119,7 +149,8 @@ class Trivia(commands.Cog):
     async def stop_trivia(self, interaction: discord.Interaction):
         if not self.trivia_started:
             # if not started, do nothing
-            await interaction.response.send_message('Trivia is not started', ephemeral=True)
+            embed = discord.Embed(color=discord.Color.yellow(), description='Trivia is not started')
+            await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
         # defer response
@@ -132,35 +163,49 @@ class Trivia(commands.Cog):
         self.trivia_channel = None
         self.current_question = None
 
-        await interaction.edit_original_response(content=string)
+        embed = discord.Embed(color=discord.Color.yellow(), description=string)
+        await interaction.edit_original_response(embed=embed)
 
     async def send_scores(self, final=False):
         if len(list(scores.items())) == 0:
             return
 
-        msg = '### Current Scores\n\n'
+        msg = '## Current Scores (Top 25)\n\n'
         if final:
-            msg = '### Final Scores\n\n'
+            msg = '## Final Scores\n\n'
 
         # sort by most points
         sorted_scores = sorted(scores.items(), key=lambda x:x[1], reverse=True)
 
-        # todo: need to send multiple pages if there's too many
+        # todo: need to split up and send multiple pages if there's too many
+        # how many is too many? 15-25 per page good?
+        display_scores = sorted_scores
+        count = len(sorted_scores)
+        if count > 25:
+            display_scores = sorted_scores[0:25]
 
-        # todo: pad names by biggest name
-        # actually that won't work because it's not monospace
-        # figure something out
-        for i, score in enumerate(sorted_scores):
-            msg += f'{i+1}) <@{score[0]}>: {score[1]}\n'
+        # loop through the scores
+        for i, score in enumerate(display_scores):
+            msg += f'{i+1}) <@{score[0]}> - {score[1]}\n'
 
         score_embed = self.make_embed('teal', description=msg)
         channel = self.bot.get_channel(self.trivia_channel)
         await channel.send(embed=score_embed)
 
-    @tasks.loop(seconds=10)
+        # send the rest of the scores for final
+        if final:
+            for chunk in range(25, count, 25):
+                description = '## Final Scores Continued'
+                for i, score in enumerate(sorted_scores[chunk:chunk+25]):
+                    description += f'{i+chunk+1}) <@{score[0]}> - {score[1]}\n'
+                score_embed = self.make_embed('teal', description=description)
+                channel = self.bot.get_channel(self.trivia_channel)
+                await channel.send(embed=score_embed)
+
+    @tasks.loop(seconds=1)
     async def trivia_loop(self):
-        # first loop skip to give some time
-        if self.trivia_loop.current_loop == 0:
+        # check 10 seconds passed from last question
+        if timestamp() - self.last_question_ts < 10:
             return
 
         # get channel for sending messages
@@ -169,21 +214,29 @@ class Trivia(commands.Cog):
         if self.current_question:
             # show results for last question
             last_q = '## Time\'s up!\n\n'
-            last_q += f'The correct answer was: **{self.current_question["answer"]}**\n\n'
-            last_q += 'Next question in 10 seconds..'
+            last_q += f'## The correct answer was: **{self.current_question["answer"]}**\n\n'
+            last_q += '### Next question in 10 seconds..'
             embed = self.make_embed('green', description=last_q)
             await channel.send(embed=embed)
+            self.last_question_ts = timestamp()
 
             # no more questions, end quiz
             final = len(self.trivia_questions) == 0
             if final:
                 # end quiz
-                embed = self.make_embed('blurple', description='Quiz over!\n\nThanks for playing')
+                embed = self.make_embed('blurple', description='# Quiz over!\n\n## Thanks for playing!')
                 await channel.send(embed=embed)
-                self.trivia_loop.cancel()
 
             # show scores
             await self.send_scores(final=final)
+
+            # reset all variables if final
+            if final:
+                self.trivia_data = {}
+                self.trivia_started = False
+                self.trivia_channel = None
+                self.current_question = None
+                self.trivia_loop.cancel()
 
             # do the next question on the next loop
             self.current_question = None
@@ -195,11 +248,11 @@ class Trivia(commands.Cog):
         random.shuffle(answers)
 
         # create the question/answer string
-        this_q = f'{self.current_question["question"]}\n\n'
-        this_q += f':regional_indicator_a:) **{answers[0]}**\n'
-        this_q += f':regional_indicator_b:) **{answers[1]}**\n'
-        this_q += f':regional_indicator_c:) **{answers[2]}**\n'
-        this_q += f':regional_indicator_d:) **{answers[3]}**'
+        this_q = f'## {self.current_question["question"]}\n\n'
+        this_q += f'### :regional_indicator_a:) **{answers[0]}**\n'
+        this_q += f'### :regional_indicator_b:) **{answers[1]}**\n'
+        this_q += f'### :regional_indicator_c:) **{answers[2]}**\n'
+        this_q += f'### :regional_indicator_d:) **{answers[3]}**'
 
         # create the embed
         embed = self.make_embed('yellow', description=this_q)
@@ -215,9 +268,11 @@ class Trivia(commands.Cog):
         correct = letters[answers.index(self.current_question['answer'])]
         view = TriviaView(timeout=10, scores=scores, correct=correct, ts=timestamp())
         question_msg = await channel.send(embed=embed, view=view)
+        self.last_question_ts = timestamp()
 
         # update buttons to disabled when finished
         await view.wait()
         for child in view.children:
             child.disabled = True
         await question_msg.edit(embed=embed, view=view)
+
