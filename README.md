@@ -40,4 +40,13 @@ CREATE TABLE no_xp_role (
     role_id INT
 );
 INSERT INTO no_xp_role (role_id) VALUES (0);
+
+CREATE TABLE champion_role (
+    role_name TEXT,
+    role_id INT
+);
+CREATE TABLE allowed_rank (
+    role_name TEXT,
+    role_id INT
+);
 ```
