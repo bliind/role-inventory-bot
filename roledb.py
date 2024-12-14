@@ -111,3 +111,73 @@ async def get_no_xp_role():
         print('Failed to get SR roles:')
         print(e)
         return False
+
+async def add_champion_role(role_name: str, role_id: int):
+    try:
+        async with aiosqlite.connect('db.db') as db:
+            await db.execute('INSERT INTO champion_role (role_name, role_id) VALUES (?, ?)', (role_name, role_id))
+            await db.commit()
+        return True
+    except Exception as e:
+        print('Failed to add champion role:')
+        print(e, role_name, role_id)
+        return False
+
+async def remove_champion_role(role_id: int):
+    try:
+        async with aiosqlite.connect('db.db') as db:
+            await db.execute('DELETE FROM champion_role WHERE role_id = ?', (role_id,))
+            await db.commit()
+        return True
+    except Exception as e:
+        print('Failed to remove champion role:')
+        print(e, role_id)
+        return False
+
+async def list_champion_roles():
+    try:
+        async with aiosqlite.connect('db.db') as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute('SELECT * FROM champion_role')
+            rows = await cursor.fetchall()
+            await cursor.close()
+            return rows
+    except Exception as e:
+        print('Failed to get champion roles:')
+        print(e)
+        return False
+
+async def add_allowed_rank(role_name: str, role_id: int):
+    try:
+        async with aiosqlite.connect('db.db') as db:
+            await db.execute('INSERT INTO allowed_rank (role_name, role_id) VALUES (?, ?)', (role_name, role_id))
+            await db.commit()
+        return True
+    except Exception as e:
+        print('Failed to add allowed rank role:')
+        print(e, role_name, role_id)
+        return False
+
+async def remove_allowed_rank(role_id: int):
+    try:
+        async with aiosqlite.connect('db.db') as db:
+            await db.execute('DELETE FROM allowed_rank WHERE role_id = ?', (role_id,))
+            await db.commit()
+        return True
+    except Exception as e:
+        print('Failed to remove allowed rank role:')
+        print(e, role_id)
+        return False
+
+async def list_allowed_ranks():
+    try:
+        async with aiosqlite.connect('db.db') as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute('SELECT * FROM allowed_rank')
+            rows = await cursor.fetchall()
+            await cursor.close()
+            return rows
+    except Exception as e:
+        print('Failed to get allowed rank roles:')
+        print(e)
+        return False

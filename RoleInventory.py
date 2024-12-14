@@ -21,6 +21,11 @@ class RoleInventory(commands.Cog):
         self.bot.tree.add_command(self.add_sr_role, guild=self.server)
         self.bot.tree.add_command(self.remove_sr_role, guild=self.server)
         self.bot.tree.add_command(self.set_no_xp_role, guild=self.server)
+        self.bot.tree.add_command(self.champion, guild=self.server)
+        self.bot.tree.add_command(self.add_champion_role, guild=self.server)
+        self.bot.tree.add_command(self.remove_champion_role, guild=self.server)
+        self.bot.tree.add_command(self.add_allowed_rank, guild=self.server)
+        self.bot.tree.add_command(self.remove_allowed_rank, guild=self.server)
 
     def make_embed(self, color, description=None):
         color = getattr(discord.Color, color)
@@ -43,6 +48,11 @@ class RoleInventory(commands.Cog):
         self.bot.tree.remove_command('add_sr_role', guild=self.server)
         self.bot.tree.remove_command('remove_sr_role', guild=self.server)
         self.bot.tree.remove_command('set_no_xp_role', guild=self.server)
+        self.bot.tree.remove_command('champion', guild=self.server)
+        self.bot.tree.remove_command('add_champion_role', guild=self.server)
+        self.bot.tree.remove_command('remove_champion_role', guild=self.server)
+        self.bot.tree.remove_command('add_allowed_rank', guild=self.server)
+        self.bot.tree.remove_command('remove_allowed_rank', guild=self.server)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -226,3 +236,69 @@ class RoleInventory(commands.Cog):
         await roledb.set_no_xp_role(role.id)
         embed = self.make_embed('red', f'No XP role set as: <@&{role.id}>!')
         await interaction.edit_original_response(embed=embed)
+
+    @app_commands.command(name='champion', description='Become a Server Champion (if you can)')
+    async def champion(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        all_of = await roledb.list_champion_roles()
+        any_of = await roledb.list_allowed_ranks()
+
+        role_ids = [r.id for r in interaction.user.roles]
+        missing = []
+        for all_role in all_of:
+            if all_role['role_id'] not in role_ids:
+                missing.append(all_role)
+
+        if len(missing) > 0:
+            description = 'Alas, you are missing some roles to become a Server Champion:\n\n'
+            for missing_id in missing:
+                description += f'- <@&{missing_id["role_id"]}>\n'
+            embed = self.make_embed('red', description)
+            await interaction.edit_original_response(embed=embed)
+            return
+
+        ranked = False
+        for any_role in any_of:
+            if any_role['role_id'] in role_ids:
+                ranked = True
+                break
+
+        if not ranked:
+            description = 'Alas, you are not ranked high enough to become a Server Champion. Allowed ranks:\n\n'
+            for needed_rank in any_of:
+                description += f'- <@&{needed_rank["role_id"]}>\n'
+            embed = self.make_embed('red', description)
+            await interaction.edit_original_response(embed=embed)
+            return
+
+        if ranked == True and len(missing) == 0:
+            await interaction.user.add_roles(discord.Object(id=self.config.server_champion))
+            embed = self.make_embed('green', 'Congratulations! You are a Server Champion!')
+            await interaction.edit_original_response(embed=embed)
+
+    @app_commands.command(name='add_champion_role', description='Add a role to the Server Champion required roles')
+    async def add_champion_role(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.add_champion_role(role.name, role.id)
+        await interaction.edit_original_response(embed=self.make_embed('green', f'<@&{role.id}> added!'))
+
+    @app_commands.command(name='remove_champion_role', description='Remove a role from the Server Champion required roles')
+    async def remove_champion_role(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.add_champion_role(role.name, role.id)
+        await interaction.edit_original_response(embed=self.make_embed('red', f'<@&{role.id}> removed!'))
+
+    @app_commands.command(name='add_allowed_rank', description='Add a role to the Server Champion allowed SRs')
+    async def add_allowed_rank(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.add_allowed_rank(role.name, role.id)
+        await interaction.edit_original_response(embed=self.make_embed('green', f'<@&{role.id}> added!'))
+
+    @app_commands.command(name='remove_allowed_rank', description='Remove a role from the Server Champion allowed SRs')
+    async def remove_allowed_rank(self, interaction: discord.Interaction, role: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        await roledb.add_allowed_rank(role.name, role.id)
+        await interaction.edit_original_response(embed=self.make_embed('red', f'<@&{role.id}> removed!'))
+
+    
