@@ -44,7 +44,8 @@ class Trivia(commands.Cog):
         self.current_question = None
 
     def cog_unload(self):
-        self.trivia_loop.cancel()
+        try: self.trivia_loop.cancel()
+        except: pass
         self.bot.tree.remove_command('start_trivia', guild=self.server)
         self.bot.tree.remove_command('stop_trivia', guild=self.server)
 
