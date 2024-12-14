@@ -300,5 +300,3 @@ class RoleInventory(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         await roledb.add_allowed_rank(role.name, role.id)
         await interaction.edit_original_response(embed=self.make_embed('red', f'<@&{role.id}> removed!'))
-
-    
