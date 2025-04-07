@@ -85,3 +85,48 @@ async def change_hot_hour(hour=None, active=None, odds=None):
         print('Failed to change hot hour:')
         print(e, hour, active, odds)
 
+async def get_wallet(user_id):
+    out = {}
+    try:
+        async with aiosqlite.connect('rockslots.db') as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute('SELECT award, count FROM wallet WHERE user_id = ?', (user_id,)) as cursor:
+                async for row in cursor:
+                    out[row[0]] = row[1]
+        return out
+    except Exception as e:
+        print('Failed to get wallet:')
+        print(e, user_id)
+        return {}
+
+async def add_to_wallet(user_id, award):
+    try:
+        async with aiosqlite.connect('rockslots.db') as db:
+            cursor = await db.execute('SELECT * FROM wallet WHERE user_id = ? AND award = ?', (user_id, award))
+            row = await cursor.fetchone()
+
+            if row:
+                sql = 'UPDATE wallet SET count = count + 1 WHERE user_id = ? AND award = ?'
+            else:
+                sql = 'INSERT INTO WALLET (user_id, award, count) VALUES (?, ?, 1)'
+
+            await db.execute(sql, (user_id, award))
+            await db.commit()
+    except Exception as e:
+        print(e, user_id)
+
+async def remove_from_wallet(user_id, award, amount):
+    try:
+        async with aiosqlite.connect('rockslots.db') as db:
+            cursor = await db.execute('SELECT count FROM wallet WHERE user_id = ? AND award = ?', (user_id, award))
+            row = await cursor.fetchone()
+
+            if int(row[0]) >= amount:
+                sql = 'UPDATE wallet SET count = count - ? WHERE user_id = ? AND award = ?'
+                await db.execute(sql, (amount, user_id, award))
+                await db.commit()
+                return True
+            else:
+                return False
+    except Exception as e:
+        print(e, user_id)

@@ -8,6 +8,7 @@ from discord.ext import commands, tasks
 import slotsdb
 from dotdict import dotdict
 from FrenzyRoleView import FrenzyRoleView
+from UpgradeView import UpgradeView
 
 # load the loot table according to the environment
 def load_loot_table():
@@ -16,6 +17,13 @@ def load_loot_table():
     with open(file, encoding='utf8') as stream:
         loot_table = json.load(stream)
     loot_table = dotdict(loot_table)
+
+def load_upgrade_table():
+    global upgrade_table
+    file = 'upgrade_table.json' if env == 'prod' else 'upgrade_table.json'
+    with open(file, encoding='utf8') as stream:
+        upgrade_table = json.load(stream)
+    upgrade_table = dotdict(upgrade_table)
 
 def load_fail_messages():
     global fail_messages
@@ -31,6 +39,7 @@ def load_gamba_cfg():
 
 env = os.getenv('BOT_ENV')
 load_loot_table()
+load_upgrade_table()
 load_fail_messages()
 load_gamba_cfg()
 
@@ -87,6 +96,7 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.mine, guild=self.server)
         self.bot.tree.add_command(self.scava, guild=self.server)
         self.bot.tree.add_command(self.reload_loot_table, guild=self.server)
+        self.bot.tree.add_command(self.reload_upgrade_table, guild=self.server)
         self.bot.tree.add_command(self.reload_fail_messages, guild=self.server)
         self.bot.tree.add_command(self.reload_slots_cfg, guild=self.server)
         self.bot.tree.add_command(self.goose_say, guild=self.server)
@@ -94,6 +104,8 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.get_stats, guild=self.server)
         self.bot.tree.add_command(self.hot_hour, guild=self.server)
         self.bot.tree.add_command(self.frenzy_role_message, guild=self.server)
+        self.bot.tree.add_command(self.rock_wallet, guild=self.server)
+        self.bot.tree.add_command(self.rock_upgrade, guild=self.server)
         # self.check_hot_hour.start()
 
     @commands.Cog.listener()
@@ -179,6 +191,11 @@ class Gamba(commands.Cog):
         load_loot_table()
         await interaction.response.send_message('Reloaded', ephemeral=True)
 
+    @app_commands.command(name='reload_upgrade_table', description='Re-read the upgrade table')
+    async def reload_upgrade_table(self, interaction):
+        load_upgrade_table()
+        await interaction.response.send_message('Reloaded', ephemeral=True)
+
     @app_commands.command(name='reload_fail_messages', description='Re-read the fail message table')
     async def reload_fail_messages(self, interaction):
         load_fail_messages()
@@ -233,6 +250,10 @@ class Gamba(commands.Cog):
             await interaction.followup.send(embed=embed, ephemeral=True)
         else:
             # won
+
+            # add to rock wallet
+            await slotsdb.add_to_wallet(interaction.user.id, award)
+
             win_spin = f'{loot_table[award]["spin"]}'
             embed = make_embed('green', f'{win_spin}\n\nYou won the {award} role!')
             if award == 'GOLDEN JEFF':
@@ -254,6 +275,64 @@ class Gamba(commands.Cog):
 
         # save the timestamp for the cooldown
         await slotsdb.save_slot_pull(interaction.user.id, timestamp(), award)
+
+    @app_commands.command(name='rock_wallet', description='View your mining gains!')
+    async def rock_wallet(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        wallet = await slotsdb.get_wallet(interaction.user.id)
+        embed = make_embed('blue', '## Your ROCK WALLET:\n\n')
+        for award, count in wallet.items():
+            embed.description += f'**{award}**: {count}\n'
+
+        if len(wallet.keys()) > 0:
+            embed.description += '\nCollect enough and use the /rock_upgrade command to get better ones!'
+        else:
+            # empty wallet gif
+            embed.set_image(url='https://i.imgur.com/q2qTDRe.gif')
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @app_commands.command(name='rock_upgrade', description='Spend rocks to get better rocks!')
+    async def rock_upgrade(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        wallet = await slotsdb.get_wallet(interaction.user.id)
+        upgrades = []
+        for award, count in wallet.items():
+            try:
+                upgrade = upgrade_table[award]
+                if count >= upgrade['amount']:
+                    label = f'{upgrade["amount"]} {award}s for 1 {upgrade["upgrade"]}'
+                    upgrades.append((award, label))
+            except:
+                pass
+
+        if len(upgrades) == 0:
+            embed = make_embed('red', '### No Available Upgrades.\nGet more rocks!')
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
+
+        embed = make_embed('green', '### Select an upgrade!')
+        view = UpgradeView(interaction, upgrades)
+        message = await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+        await view.wait()
+        if view.value:
+            # they picked something, gather info
+            user_id = interaction.user.id
+            selected = view.select.selected
+
+            upgrade_award = selected['id']
+            if await slotsdb.remove_from_wallet(user_id, upgrade_award, upgrade_table[upgrade_award]['amount']):
+                await slotsdb.add_to_wallet(user_id, upgrade_table[upgrade_award]['upgrade'])
+
+                embed = make_embed('blue', '### Upgrade successful:\n')
+                embed.description += selected['name']
+            else:
+                embed = make_embed('red', '### You do not have the funds for this upgrade')
+        else:
+            embed = make_embed('grey', 'Cancelled.')
+
+        await message.edit(view=None, embed=embed)
 
     @app_commands.command(name='frenzy_role_message', description='Send the frenzy role message')
     async def frenzy_role_message(self, interaction: discord.Interaction):
@@ -288,6 +367,7 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('mine', guild=self.server)
         self.bot.tree.remove_command('scava', guild=self.server)
         self.bot.tree.remove_command('reload_loot_table', guild=self.server)
+        self.bot.tree.remove_command('reload_upgrade_table', guild=self.server)
         self.bot.tree.remove_command('reload_fail_messages', guild=self.server)
         self.bot.tree.remove_command('reload_slots_cfg', guild=self.server)
         self.bot.tree.remove_command('goose_say', guild=self.server)
@@ -295,6 +375,8 @@ class Gamba(commands.Cog):
         self.bot.tree.remove_command('get_stats', guild=self.server)
         self.bot.tree.remove_command('hot_hour', guild=self.server)
         self.bot.tree.remove_command('frenzy_role_message', guild=self.server)
+        self.bot.tree.remove_command('rock_wallet', guild=self.server)
+        self.bot.tree.remove_command('rock_upgrade', guild=self.server)
 
     @tasks.loop(minutes=1)
     async def check_hot_hour(self):

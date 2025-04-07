@@ -50,3 +50,11 @@ CREATE TABLE allowed_rank (
     role_id INT
 );
 ```
+
+```sql
+CREATE TABLE wallet (
+    user_id INT,
+    award TEXT,
+    count INT
+);
+```
