@@ -333,9 +333,15 @@ class Gamba(commands.Cog):
             selected = view.select.selected
 
             upgrade_award = selected['id']
-            if await slotsdb.remove_from_wallet(user_id, upgrade_award, upgrade_table[upgrade_award]['amount']):
-                await slotsdb.add_to_wallet(user_id, upgrade_table[upgrade_award]['upgrade'])
+            award = upgrade_table[upgrade_award]
+            if await slotsdb.remove_from_wallet(user_id, upgrade_award, award['amount']):
+                # update the wallet
+                await slotsdb.add_to_wallet(user_id, award['upgrade'])
 
+                # give them the new role
+                await interaction.user.add_roles(award['role_id'])
+
+                # send 'em a message
                 embed = make_embed('blue', '### Upgrade successful:\n')
                 embed.description += selected['name']
             else:
