@@ -3,6 +3,7 @@ import random
 import json
 import datetime
 import discord
+import math
 from discord import app_commands
 from discord.ext import commands, tasks
 import slotsdb
@@ -147,6 +148,8 @@ class Gamba(commands.Cog):
                     cooldown -= cooldown * .2
                 if 'diamond' in role_name:
                     cooldown -= cooldown * .3
+
+        cooldown = math.ceil(cooldown)
 
         # check last spin for the user
         # cooldown, now - then < cooldown
@@ -360,7 +363,7 @@ class Gamba(commands.Cog):
             else:
                 embed = make_embed('red', '### You do not have the funds for this upgrade')
         else:
-            embed = make_embed('grey', 'Cancelled.')
+            embed = make_embed('dark_grey', 'Cancelled.')
 
         await message.edit(view=None, embed=embed)
 
