@@ -3,6 +3,10 @@
         "upgrade": "Gold Rock",
         "amount": 10
     },
+    "Banana Rock": {
+        "upgrade": "Gold Rock",
+        "amount": 5
+    },
     "Gold Rock": {
         "upgrade": "Coal",
         "amount": 5
