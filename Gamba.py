@@ -130,10 +130,21 @@ class Gamba(commands.Cog):
                 cooldown = gamba_cfg.booster_cooldown
                 break
 
-        # # check for hot hour
+        # check for hot hour
         hot_hour = await slotsdb.get_hot_hour()
         if hot_hour['active']:
             cooldown = gamba_cfg.hot_hour_cooldown
+
+        # check for pickaxe roles (reduced cooldown)
+        for role in user.roles:
+            role_name = role.name.lower()
+            if 'pickaxe' in role_name:
+                if 'bronze' in role_name:
+                    cooldown -= cooldown * .1
+                if 'iron' in role_name:
+                    cooldown -= cooldown * .2
+                if 'diamond' in role_name:
+                    cooldown -= cooldown * .3
 
         # check last spin for the user
         # cooldown, now - then < cooldown
