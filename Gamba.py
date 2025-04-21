@@ -357,15 +357,19 @@ class Gamba(commands.Cog):
                 # give them the new role
                 await interaction.user.add_roles(discord.Object(id=new_role))
 
-                # send 'em a message
-                embed = make_embed('blue', '### Upgrade successful:\n')
-                embed.description += selected['name']
+                # send a message to the chat
+                await message.delete()
+                trade = selected["name"].replace(' for ', ' into ')
+                description = f'### 💥 You have mysteriously transformed {trade}! 💥'
+                embed = make_embed('blue', description)
+                await interaction.channel.send(interaction.user.mention, embed=embed)
             else:
                 embed = make_embed('red', '### You do not have the funds for this upgrade')
+                await message.edit(view=None, embed=embed)
         else:
             embed = make_embed('dark_grey', 'Cancelled.')
+            await message.edit(view=None, embed=embed)
 
-        await message.edit(view=None, embed=embed)
 
     @app_commands.command(name='frenzy_role_message', description='Send the frenzy role message')
     async def frenzy_role_message(self, interaction: discord.Interaction):
