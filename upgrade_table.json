@@ -1,47 +1,38 @@
 {
     "Rock": {
         "upgrade": "Gold Rock",
-        "amount": 10,
-        "role_id": 1091751874341900449
+        "amount": 10
     },
     "Gold Rock": {
         "upgrade": "Coal",
-        "amount": 5,
-        "role_id": 1193686449137143888
+        "amount": 5
     },
     "Coal": {
         "upgrade": "Diamond Rock",
-        "amount": 5,
-        "role_id": 1091785294812029110
+        "amount": 5
     },
     "Diamond Rock": {
         "upgrade": "Vibranium",
-        "amount": 5,
-        "role_id": 1194006746893660264
+        "amount": 5
     },
     "Vibranium": {
         "upgrade": "Flawless Rock",
-        "amount": 5,
-        "role_id": 1091878327628865556
+        "amount": 5
     },
     "Flawless Rock": {
         "upgrade": "Symbiote Rock",
-        "amount": 5,
-        "role_id": 1278771944975634482
+        "amount": 5
     },
     "Symbiote Rock": {
         "upgrade": "Platinum Vibranium",
-        "amount": 5,
-        "role_id": 1195159090171756594
+        "amount": 5
     },
     "Platinum Vibranium": {
         "upgrade": "Prismatic Rock",
-        "amount": 5,
-        "role_id": 1193671665364762687
+        "amount": 5
     },
     "Prismatic Rock": {
         "upgrade": "Rainbow Rock",
-        "amount": 5,
-        "role_id": 1279496509955637331
+        "amount": 5
     }
 }

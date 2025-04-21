@@ -334,12 +334,14 @@ class Gamba(commands.Cog):
 
             upgrade_award = selected['id']
             award = upgrade_table[upgrade_award]
+            new_role = loot_table[award['upgrade']]['role']
+
             if await slotsdb.remove_from_wallet(user_id, upgrade_award, award['amount']):
                 # update the wallet
                 await slotsdb.add_to_wallet(user_id, award['upgrade'])
 
                 # give them the new role
-                await interaction.user.add_roles(award['role_id'])
+                await interaction.user.add_roles(discord.Object(id=new_role))
 
                 # send 'em a message
                 embed = make_embed('blue', '### Upgrade successful:\n')

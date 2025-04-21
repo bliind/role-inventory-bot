@@ -113,7 +113,7 @@ async def add_to_wallet(user_id, award):
             await db.execute(sql, (user_id, award))
             await db.commit()
     except Exception as e:
-        print(e, user_id)
+        print(e, user_id, award)
 
 async def remove_from_wallet(user_id, award, amount):
     try:
@@ -129,4 +129,4 @@ async def remove_from_wallet(user_id, award, amount):
             else:
                 return False
     except Exception as e:
-        print(e, user_id)
+        print(e, user_id, award, amount)
