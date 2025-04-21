@@ -5,26 +5,26 @@
     },
     "Gold Rock": {
         "upgrade": "Coal",
-        "amount": 10
+        "amount": 5
     },
     "Coal": {
         "upgrade": "Diamond Rock",
-        "amount": 10
+        "amount": 5
     },
     "Diamond Rock": {
         "upgrade": "Vibranium",
-        "amount": 10
+        "amount": 5
     },
     "Vibranium": {
         "upgrade": "Flawless Rock",
-        "amount": 10
+        "amount": 5
     },
     "Flawless Rock": {
         "upgrade": "Platinum Vibranium",
-        "amount": 10
+        "amount": 5
     },
     "Platinum Vibranium": {
         "upgrade": "Prismatic Rock",
-        "amount": 10
+        "amount": 5
     }
 }
