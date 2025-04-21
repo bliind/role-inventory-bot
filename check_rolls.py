@@ -3,7 +3,7 @@ import datetime
 import asyncio
 import sys
 
-dbfile = 'rockslots.db'
+dbfile = 'rockslots2.db'
 
 def humantime(timestamp):
     date = datetime.datetime.fromtimestamp(timestamp)
