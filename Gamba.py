@@ -82,7 +82,7 @@ def make_embed(color, description=None):
         color=color(),
         title='Rock Slots!'
     )
-    embed.set_thumbnail(url='https://i.imgur.com/5l8wp94.jpeg')
+    embed.set_thumbnail(url='https://i.imgur.com/WkeREMF.png')
     if description:
         embed.description = description
 
