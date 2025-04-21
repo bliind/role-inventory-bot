@@ -20,11 +20,19 @@
         "amount": 5
     },
     "Flawless Rock": {
+        "upgrade": "Symbiote Rock",
+        "amount": 5
+    },
+    "Symbiote Rock": {
         "upgrade": "Platinum Vibranium",
         "amount": 5
     },
     "Platinum Vibranium": {
         "upgrade": "Prismatic Rock",
+        "amount": 5
+    },
+    "Prismatic Rock": {
+        "upgrade": "Rainbow Rock",
         "amount": 5
     }
 }
