@@ -3,7 +3,7 @@ import uuid
 
 async def save_slot_pull(user_id, datestamp, award):
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             await db.execute('INSERT INTO gamba (id, user_id, datestamp, award) VALUES (?, ?, ?, ?)', (str(uuid.uuid4()), user_id, datestamp, str(award)))
             await db.commit()
     except Exception as e:
@@ -12,7 +12,7 @@ async def save_slot_pull(user_id, datestamp, award):
 
 async def get_last_slot_pull(user_id):
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             cursor = await db.execute('SELECT * FROM gamba WHERE user_id = ? ORDER BY datestamp DESC', (user_id,))
             row = await cursor.fetchone()
     except Exception as e:
@@ -30,7 +30,7 @@ async def get_last_slot_pull(user_id):
 
 async def get_total_pulls(user_id):
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             cursor = await db.execute('SELECT count(id) AS count FROM gamba WHERE user_id = ?', (user_id,))
             row = await cursor.fetchone()
     except Exception as e:
@@ -42,7 +42,7 @@ async def get_total_pulls(user_id):
 async def get_stats(user_id):
     out = []
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             db.row_factory = aiosqlite.Row
             async with db.execute('SELECT count(id) as count, award FROM gamba WHERE user_id = ? GROUP BY award', (user_id,)) as cursor:
                 async for row in cursor:
@@ -56,7 +56,7 @@ async def get_stats(user_id):
 
 async def get_hot_hour():
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute('SELECT * FROM hot_hour')
             row = await cursor.fetchone()
@@ -78,7 +78,7 @@ async def change_hot_hour(hour=None, active=None, odds=None):
     sql += ','.join(['?' for i in changes.keys()]) + ')'
 
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             await db.execute(sql, list(changes.values()))
             await db.commit()
     except Exception as e:
@@ -88,7 +88,7 @@ async def change_hot_hour(hour=None, active=None, odds=None):
 async def get_wallet(user_id):
     out = {}
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             db.row_factory = aiosqlite.Row
             async with db.execute('SELECT award, count FROM wallet WHERE user_id = ?', (user_id,)) as cursor:
                 async for row in cursor:
@@ -101,7 +101,7 @@ async def get_wallet(user_id):
 
 async def add_to_wallet(user_id, award):
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             cursor = await db.execute('SELECT * FROM wallet WHERE user_id = ? AND award = ?', (user_id, award))
             row = await cursor.fetchone()
 
@@ -117,7 +117,7 @@ async def add_to_wallet(user_id, award):
 
 async def remove_from_wallet(user_id, award, amount):
     try:
-        async with aiosqlite.connect('rockslots.db') as db:
+        async with aiosqlite.connect('rockslots2.db') as db:
             cursor = await db.execute('SELECT count FROM wallet WHERE user_id = ? AND award = ?', (user_id, award))
             row = await cursor.fetchone()
 
