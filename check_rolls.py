@@ -87,13 +87,19 @@ def check_user_spins(user_id: int):
 
 def check_total_spins():
     rolls = asyncio.run(get_spin_counts())
+    tally = 0
     for roll in rolls:
         print(f'{roll["user_id"]} - {roll["total_spins"]}')
+        tally += roll['total_spins']
+    print(f'Total: {tally}')
 
 def check_reward_totals():
     awards = asyncio.run(get_rewards_counts())
+    tally = 0
     for award in awards:
         print(f'{award["award"]} - {award["count"]}')
+        tally += award['count']
+    print(f'Total: {tally}')
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
