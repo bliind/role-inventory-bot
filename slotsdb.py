@@ -28,6 +28,15 @@ async def get_last_slot_pull(user_id):
     except:
         return None
 
+async def update_slot_pull(id, datestamp):
+    try:
+        async with aiosqlite.connect('rockslots2.db') as db:
+            await db.execute('UPDATE gamba SET datestamp = ? WHERE id = ?', (datestamp, id))
+            await db.commit()
+    except Exception as e:
+        print('Failed to update slot pull:')
+        print(e, id, datestamp)
+
 async def get_total_pulls(user_id):
     try:
         async with aiosqlite.connect('rockslots2.db') as db:

@@ -154,8 +154,11 @@ class Gamba(commands.Cog):
         # check last spin for the user
         # cooldown, now - then < cooldown
         seconds_left = timestamp() - last_roll['datestamp']
+        seconds_to_add = 2
         if (seconds_left < cooldown):
-            return (last_roll['datestamp'] + cooldown) - timestamp()
+            # add a small amount of seconds to the cooldown to combat command spamming
+            await slotsdb.update_slot_pull(last_roll['id'], last_roll['datestamp'] + seconds_to_add)
+            return (last_roll['datestamp'] + seconds_to_add + cooldown) - timestamp()
 
         return 0
 
