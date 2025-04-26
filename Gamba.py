@@ -330,8 +330,10 @@ class Gamba(commands.Cog):
             try:
                 upgrade = upgrade_table[award]
                 if count >= upgrade['amount']:
-                    label = f'{upgrade["amount"]} {award}s for 1 {upgrade["upgrade"]}'
-                    upgrades.append((award, label))
+                    times = math.floor(count / upgrade['amount'])
+                    label = f'{upgrade["amount"] * times} {award}s for {times} {upgrade["upgrade"]}'
+                    if times > 1: label += 's'
+                    upgrades.append((award, label, times))
             except:
                 pass
 
@@ -349,20 +351,22 @@ class Gamba(commands.Cog):
             user_id = interaction.user.id
             selected = view.select.selected
 
-            upgrade_award = selected['id']
+            upgrade_award = selected['award']
+            times = selected['times']
             award = upgrade_table[upgrade_award]
             new_role = loot_table[award['upgrade']]['role']
 
-            if await slotsdb.remove_from_wallet(user_id, upgrade_award, award['amount']):
+            to_remove = int(award['amount']) * int(times)
+            if await slotsdb.remove_from_wallet(user_id, upgrade_award, to_remove):
                 # update the wallet
-                await slotsdb.add_to_wallet(user_id, award['upgrade'])
+                await slotsdb.add_to_wallet(user_id, award['upgrade'], amount=int(times))
 
                 # give them the new role
                 await interaction.user.add_roles(discord.Object(id=new_role))
 
                 # send a message to the chat
                 await message.delete()
-                trade = selected["name"].replace(' for ', ' into ')
+                trade = selected['label'].replace(' for ', ' into ')
                 description = f'### 💥 You have mysteriously transformed {trade}! 💥'
                 embed = make_embed('blue', description)
                 await interaction.channel.send(interaction.user.mention, embed=embed)

@@ -108,18 +108,18 @@ async def get_wallet(user_id):
         print(e, user_id)
         return {}
 
-async def add_to_wallet(user_id, award):
+async def add_to_wallet(user_id, award, amount=1):
     try:
         async with aiosqlite.connect('rockslots2.db') as db:
             cursor = await db.execute('SELECT * FROM wallet WHERE user_id = ? AND award = ?', (user_id, award))
             row = await cursor.fetchone()
 
             if row:
-                sql = 'UPDATE wallet SET count = count + 1 WHERE user_id = ? AND award = ?'
+                sql = 'UPDATE wallet SET count = count + ? WHERE user_id = ? AND award = ?'
             else:
-                sql = 'INSERT INTO WALLET (user_id, award, count) VALUES (?, ?, 1)'
+                sql = 'INSERT INTO WALLET (count, user_id, award) VALUES (?, ?, ?)'
 
-            await db.execute(sql, (user_id, award))
+            await db.execute(sql, (amount, user_id, award))
             await db.commit()
     except Exception as e:
         print(e, user_id, award)
@@ -130,7 +130,7 @@ async def remove_from_wallet(user_id, award, amount):
             cursor = await db.execute('SELECT count FROM wallet WHERE user_id = ? AND award = ?', (user_id, award))
             row = await cursor.fetchone()
 
-            if int(row[0]) >= amount:
+            if int(row[0]) >= int(amount):
                 sql = 'UPDATE wallet SET count = count - ? WHERE user_id = ? AND award = ?'
                 await db.execute(sql, (amount, user_id, award))
                 await db.commit()
