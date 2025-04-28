@@ -286,7 +286,13 @@ class Gamba(commands.Cog):
                     embed.description += ' I didn\'t even know that was possible!!'
             if award == 'Rock':
                 # don't show rock public, too common
-                embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
+                # chance for bundle of rocks
+                if random.randrange(1, 4) == 3:
+                    rocks = random.randrange(2, 5)
+                    await slotsdb.add_to_wallet(interaction.user.id, award, rocks - 1)
+                    embed.description = f'{win_spin}\n\nWhoa, you found {rocks} Rocks!'
+                else:
+                    embed.description = f'{win_spin}\n\nOh cool, you won a rock.'
                 await interaction.followup.send(embed=embed, ephemeral=True)
             else:
                 # everything else show public
