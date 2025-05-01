@@ -109,8 +109,6 @@ class Gamba(commands.Cog):
         self.bot.tree.add_command(self.rock_upgrade, guild=self.server)
         # self.check_hot_hour.start()
 
-        self.current_rolls = []
-
     @commands.Cog.listener()
     async def on_ready(self):
         try:
@@ -244,12 +242,6 @@ class Gamba(commands.Cog):
             await interaction.edit_original_response(content=f'Still cooling down from your last spin!\n\nTry again in {time_string}')
             return
 
-        # do current_rolls stuff
-        if interaction.user.id in self.current_rolls:
-            await interaction.edit_original_response(content='Something weird is happening? What are you doing?')
-            return
-        self.current_rolls.append(interaction.user.id)
-
         # roll a random number,
         # loop through the loot table and find the rarest reward hit
         award = None
@@ -303,9 +295,6 @@ class Gamba(commands.Cog):
 
             # oh yeah give the user the role
             await interaction.user.add_roles(discord.Object(id=loot_table[award]['role']))
-
-        # remove from current_rolls
-        self.current_rolls.remove(interaction.user.id)
 
         # save the timestamp for the cooldown
         await slotsdb.save_slot_pull(interaction.user.id, timestamp(), award)
