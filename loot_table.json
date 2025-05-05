@@ -1,76 +1,76 @@
 {
     "Rock": {
-        "chance": 5,
+        "chance": 10,
         "role": 1091464809150689372,
         "spin": "🍎 | 🍎 | 🍎"
     },
     "Banana Rock": {
-        "chance": 25,
+        "chance": 50,
         "role": 1358890414483964145,
         "spin": "🍌 | 🍌 | 🍌"
     },
     "Gold Rock": {
-        "chance": 50,
+        "chance": 100,
         "role": 1091751874341900449,
         "spin": "🍋 | 🍋 | 🍋"
     },
     "Coal": {
-        "chance": 150,
+        "chance": 300,
         "role": 1193686449137143888,
         "spin": "💰 | 💰 | 💰"
     },
     "Diamond Rock": {
-        "chance": 500,
+        "chance": 1000,
         "role": 1091785294812029110,
         "spin": "💎 | 💎 | 💎"
     },
     "Vibranium": {
-        "chance": 1250,
+        "chance": 2500,
         "role": 1194006746893660264,
         "spin": "🍍 | 🍍 | 🍍"
     },
     "Negative Rock": {
-        "chance": 1750,
+        "chance": 3500,
         "role": 1358887876196307115,
         "spin": "🏁 | 🏁 | 🏁"
     },
     "Flawless Rock": {
-        "chance": 2500,
+        "chance": 5000,
         "role": 1091878327628865556,
         "spin": "🍀 | 🍀 | 🍀"
     },
     "Symbiote Rock": {
-        "chance": 3750,
+        "chance": 7500,
         "role": 1278771944975634482,
         "spin": "⚫ | ⚫ | ⚫"
     },
     "Platinum Vibranium": {
-        "chance": 5000,
+        "chance": 10000,
         "role": 1195159090171756594,
         "spin": "🥝 | 🥝 | 🥝"
     },
     "Radioactive Coal": {
-        "chance": 7500,
+        "chance": 15000,
         "role": 1358887977043886252,
         "spin": "☢️ | ☢️ | ☢️"
     },
     "Prismatic Rock": {
-        "chance": 12500,
+        "chance": 25000,
         "role": 1193671665364762687,
         "spin": "🎨 | 🎨 | 🎨"
     },
     "Symbiote Jeff": {
-        "chance": 25000,
+        "chance": 50000,
         "role": 1273792473562353806,
         "spin": "🦈 | 🦈 | 🦈"
     },
     "Rainbow Rock": {
-        "chance": 25000,
+        "chance": 50000,
         "role": 1279496509955637331,
         "spin":"🌈 | 🌈 | 🌈"
     },
     "GOLDEN JEFF": {
-        "chance": 100000,
+        "chance": 250000,
         "role": 1193672946426859560,
         "spin": "✨ | ✨ | ✨"
     }
