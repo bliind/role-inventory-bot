@@ -126,8 +126,13 @@ class TimedRole(commands.Cog):
             guild = self.bot.get_guild(self.config.server)
 
             for user in expired_users:
-                member = await guild.fetch_member(user['user_id'])
-                await member.remove_roles(discord.Object(id=user['role_id']))
+                try:
+                    member = await guild.fetch_member(user['user_id'])
+                    await member.remove_roles(discord.Object(id=user['role_id']))
+                except discord.NotFound:
+                    print(f'Member left the server: {user["user_id"]}')
+                    continue
+
                 await db.remove_role_user(user['user_id'], user['role_id'])
                 await asyncio.sleep(0.9)
         except Exception as e:
