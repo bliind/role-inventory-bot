@@ -131,7 +131,6 @@ class TimedRole(commands.Cog):
                     await member.remove_roles(discord.Object(id=user['role_id']))
                 except discord.NotFound:
                     print(f'Member left the server: {user["user_id"]}')
-                    continue
 
                 await db.remove_role_user(user['user_id'], user['role_id'])
                 await asyncio.sleep(0.9)
